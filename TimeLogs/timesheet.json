@@ -1,0 +1,24 @@
+{
+  "repository": "zeCarioca/LogMyTime",
+  "last_synced_at": "2026-09-25T17:55:51Z",
+  "total_logged_minutes": 12.7,
+  "entries": [
+    {
+      "id": 2,
+      "task_description": "Fix growing circle, change from minutes to hours so it looks cooler",
+      "duration_seconds": 264,
+      "duration_minutes": 4,
+      "logged_at": "2026-09-25T17:17:35Z",
+      "synced_at": "2026-09-25T17:55:51Z"
+    },
+    {
+      "id": 3,
+      "task_description": "Better and cleaner code, ans vibes",
+      "duration_seconds": 498,
+      "duration_minutes": 8,
+      "logged_at": "2026-09-25T17:50:40Z",
+      "synced_at": "2026-09-25T17:55:51Z"
+    }
+  ],
+  "total_logged_seconds": 762
+}
