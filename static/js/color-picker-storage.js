@@ -24,6 +24,7 @@
           harmony: parsed.harmony || defaultState.harmony,
           profile: parsed.profile || defaultState.profile,
           isCustom: typeof parsed.isCustom === 'boolean' ? parsed.isCustom : defaultState.isCustom,
+          isExpanded: typeof parsed.isExpanded === 'boolean' ? parsed.isExpanded : defaultState.isExpanded,
           colors: Array.isArray(parsed.colors) && parsed.colors.length > 0 ? parsed.colors : defaultState.colors,
         };
       }

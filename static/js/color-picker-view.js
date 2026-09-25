@@ -16,6 +16,13 @@
   function renderPickerTemplate(container, options, state, profiles) {
     if (!container) return;
     container.classList.add('oklch-picker-root');
+    const isExpanded = !!state.isExpanded;
+    if (isExpanded) {
+      container.classList.add('is-expanded');
+    } else {
+      container.classList.remove('is-expanded');
+    }
+
     const profileChips = Object.keys(profiles)
       .map(
         (key) => `
@@ -31,10 +38,10 @@
           <span class="theme-icon">🎨</span>
           <h2>${options.title}</h2>
         </div>
-        <button type="button" class="btn-theme-expand" aria-expanded="false" title="Toggle palette generator panel">
+        <button type="button" class="btn-theme-expand" aria-expanded="${isExpanded ? 'true' : 'false'}" title="Toggle palette generator panel">
           <span class="theme-toggle-text">Customize</span>
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" class="theme-chevron">
-            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1 0-.708z"/>
+          <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" class="theme-chevron" style="transform: ${isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'}">
+            <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
           </svg>
         </button>
       </div>

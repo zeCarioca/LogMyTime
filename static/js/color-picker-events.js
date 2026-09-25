@@ -35,11 +35,13 @@
 
     const togglePanel = () => {
       const isExpanded = container.classList.toggle('is-expanded');
+      picker.state.isExpanded = isExpanded;
       if (toggleBtn) {
         toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
         const chevron = toggleBtn.querySelector('.theme-chevron');
         if (chevron) chevron.style.transform = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
       }
+      picker._saveState();
     };
 
     if (toggleBtn) toggleBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePanel(); });
@@ -88,6 +90,7 @@
           harmony: picker.options.defaultHarmony,
           profile: picker.options.defaultProfile,
           isCustom: false,
+          isExpanded: picker.state.isExpanded,
           colors: [],
         };
         picker.selectedColorIndex = 0;

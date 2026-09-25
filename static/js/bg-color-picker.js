@@ -59,6 +59,7 @@
         harmony: this.options.defaultHarmony,
         profile: this.options.defaultProfile,
         isCustom: false,
+        isExpanded: false,
         colors: [],
       });
 

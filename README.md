@@ -145,7 +145,7 @@ The application features an interactive color palette customizer built on the **
 5. **Manually Edit a Color**:
    - With any color selected, type a custom 6-digit hex code in the `#` input field (e.g. `4F46E5`), or click the color swatch preview to open your system's native color picker.
 6. **Reset Anytime**:
-   - Click **Reset Default** to return to the app's default dark theme. All selections are automatically remembered across page reloads.
+   - Click **Reset Default** to return to the app's default dark theme. All selections (including colors, lock states, and whether the palette panel is expanded or collapsed) are automatically remembered across page reloads and app sessions.
 7. **Save & Load Custom Profiles**:
    - Locate the **Saved Palettes** container beneath the palette customizer. Click the header or the **View** button to expand or collapse the section.
    - Type a descriptive name in the text field (e.g. `Cyberpunk Cyan` or `Forest Moss`).
