@@ -1,7 +1,7 @@
 {
   "repository": "zeCarioca/LogMyTime",
-  "last_synced_at": "2026-09-25T20:59:52Z",
-  "total_logged_minutes": 102.7,
+  "last_synced_at": "2026-09-25T22:20:13Z",
+  "total_logged_minutes": 162.7,
   "entries": [
     {
       "id": 2,
@@ -34,7 +34,15 @@
       "duration_minutes": 45,
       "logged_at": "2026-09-25T20:59:43Z",
       "synced_at": "2026-09-25T20:59:52Z"
+    },
+    {
+      "id": 6,
+      "task_description": "Different Tabs now yahoo",
+      "duration_seconds": 3600,
+      "duration_minutes": 60,
+      "logged_at": "2026-09-25T22:20:12Z",
+      "synced_at": "2026-09-25T22:20:13Z"
     }
   ],
-  "total_logged_seconds": 6162
+  "total_logged_seconds": 9762
 }
