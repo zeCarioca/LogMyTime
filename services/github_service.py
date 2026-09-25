@@ -36,7 +36,49 @@ class GitHubService:
             return res.json()
         return []
 
-    def get_file_content(self, repo_full_name: str, path: str = 'timesheet.json', ref: str = 'main'):
+    def get_branch(self, repo_full_name: str, branch: str):
+        """Fetch branch details including commit SHA."""
+        url = f'{GITHUB_API_BASE}/repos/{repo_full_name}/branches/{branch}'
+        res = requests.get(url, headers=self.headers, timeout=10)
+        if res.status_code == 200:
+            return res.json()
+        return None
+
+    def ensure_branch(self, repo_full_name: str, branch: str = 'timelogs', base_branch: str = 'main'):
+        """
+        Ensure that the specified branch exists. If not, creates it from base_branch.
+        Returns: True if branch exists or was created, False otherwise.
+        """
+        # Check if target branch already exists
+        existing = self.get_branch(repo_full_name, branch)
+        if existing:
+            return True
+
+        # Fetch base branch commit SHA
+        base_data = self.get_branch(repo_full_name, base_branch)
+        if not base_data or 'commit' not in base_data:
+            # Try fetching repo default branch info
+            repo_res = requests.get(f'{GITHUB_API_BASE}/repos/{repo_full_name}', headers=self.headers, timeout=10)
+            if repo_res.status_code == 200:
+                default_b = repo_res.json().get('default_branch', 'main')
+                if default_b != base_branch:
+                    base_data = self.get_branch(repo_full_name, default_b)
+
+        if not base_data or 'commit' not in base_data:
+            return False
+
+        base_sha = base_data['commit']['sha']
+
+        # Create ref: refs/heads/<branch>
+        create_ref_url = f'{GITHUB_API_BASE}/repos/{repo_full_name}/git/refs'
+        payload = {
+            'ref': f'refs/heads/{branch}',
+            'sha': base_sha
+        }
+        res = requests.post(create_ref_url, headers=self.headers, json=payload, timeout=10)
+        return res.status_code in (200, 201)
+
+    def get_file_content(self, repo_full_name: str, path: str = 'TimeLogs/timesheet.json', ref: str = 'timelogs'):
         """
         Fetch file metadata and decoded JSON content from the repository.
         Returns: (parsed_content, sha) or (None, None) if file does not exist.
@@ -59,19 +101,24 @@ class GitHubService:
         else:
             res.raise_for_status()
 
-    def sync_timesheet(self, repo_full_name: str, pending_entries, branch: str = 'main'):
+    def sync_timesheet(self, repo_full_name: str, pending_entries, branch: str = 'timelogs', base_branch: str = 'main'):
         """
-        Appends pending time entries into timesheet.json and commits via GitHub API.
+        Appends pending time entries into TimeLogs/timesheet.json on branch (default: 'timelogs')
+        and commits via GitHub API. Automatically creates the 'timelogs' branch if missing.
         
         Args:
             repo_full_name: 'owner/repo-name'
             pending_entries: iterable of TimeEntry objects
-            branch: default branch (e.g. 'main')
+            branch: target branch (defaults to 'timelogs')
+            base_branch: base branch to branch off of if target doesn't exist (e.g. 'main')
 
         Returns:
             dict with success status and commit info or error
         """
-        path = 'timesheet.json'
+        # Ensure target branch exists (creates from base_branch if needed)
+        self.ensure_branch(repo_full_name, branch=branch, base_branch=base_branch)
+
+        path = 'TimeLogs/timesheet.json'
         existing_data, sha = self.get_file_content(repo_full_name, path=path, ref=branch)
 
         # Standard timesheet JSON structure

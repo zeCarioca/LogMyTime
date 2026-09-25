@@ -1,0 +1,86 @@
+<!-- Column 2: Repository Sync Progress Toward 60-min Threshold -->
+<section class="card repos-card">
+  <div class="card-header">
+    <div class="title-with-count">
+      <h2>GitHub Sync Thresholds</h2>
+      <span class="count-pill">{{ repositories|length }} repos</span>
+    </div>
+    <form action="{{ url_for('repos.refresh_repositories') }}" method="POST">
+      <button type="submit" class="btn-icon" title="Refresh repositories from GitHub">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+        </svg>
+        Refresh
+      </button>
+    </form>
+  </div>
+
+  <p class="threshold-explainer">
+    Entries sync automatically once a repo accumulates <strong>≥ 60 unsynced minutes</strong>.
+  </p>
+
+  <div class="repos-list">
+    {% for repo in active_repositories %}
+      <div class="repo-progress-item" id="repo-item-{{ repo.id }}">
+        <!-- Top action bar with Hide button -->
+        <div class="repo-top-actions">
+          <span class="repo-type-tag">Active Tracked</span>
+          <form action="{{ url_for('repos.toggle_repo_visibility', repo_id=repo.id) }}" method="POST" style="margin: 0;">
+            <button type="submit" class="btn-repo-action btn-repo-hide" title="Hide this repository (moves to Archive)">
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor">
+                <path d="M8 2c1.981 0 3.67.992 4.933 2.078 1.27 1.091 2.187 2.345 2.631 3.022a1.86 1.86 0 0 1 0 1.8c-.444.677-1.362 1.931-2.631 3.022C11.67 13.008 9.981 14 8 14c-1.981 0-3.67-.992-4.933-2.078C1.797 10.831.88 9.577.436 8.9a1.86 1.86 0 0 1 0-1.8c.444-.677 1.362-1.931 2.631-3.022C4.33 2.992 6.019 2 8 2ZM1.679 7.932a.36.36 0 0 0 0 .136c.411.586 1.25 1.724 2.398 2.693C5.178 11.684 6.643 12.5 8 12.5c1.357 0 2.822-.816 3.923-1.739 1.148-.969 1.987-2.107 2.398-2.693a.36.36 0 0 0 0-.136c-.411-.586-1.25-1.724-2.398-2.693C10.822 4.316 9.357 3.5 8 3.5c-1.357 0-2.822.816-3.923 1.739-1.148.969-1.987 2.107-2.398 2.693ZM8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5Z"/>
+              </svg>
+              Hide
+            </button>
+          </form>
+        </div>
+
+        <div class="repo-meta-row">
+          <div class="repo-name">
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" class="repo-icon">
+              <path d="M2 2.5A2.5 2.5 0 014.5 0h8.75a.75.75 0 01.75.75v12.5a.75.75 0 01-.75.75h-2.5a.75.75 0 110-1.5h1.75v-2h-8a1 1 0 00-.714 1.7.75.75 0 01-1.072 1.05A2.495 2.495 0 012 11.5v-9zm10.5-1V9h-8c-.356 0-.694.074-1 .208V2.5a1 1 0 011-1h8zM5 12.25v3.25a.25.25 0 00.4.2l1.45-1.087a.25.25 0 01.3 0L8.6 15.7a.25.25 0 00.4-.2v-3.25a.25.25 0 00-.25-.25h-3.5a.25.25 0 00-.25.25z"/>
+            </svg>
+            <strong>{{ repo.full_name }}</strong>
+            <span class="branch-tag">{{ repo.default_branch }}</span>
+          </div>
+          <div class="repo-stat">
+            <span class="stat-highlight">{{ repo.unsynced_minutes }}</span> / 60 min
+          </div>
+        </div>
+
+        <!-- 60-min Threshold Progress Bar -->
+        <div class="progress-bar-track">
+          <div 
+            class="progress-bar-fill {% if repo.unsynced_minutes >= 60 %}ready{% endif %}"
+            style="width: {{ repo.sync_progress_percent }}%;"
+          ></div>
+        </div>
+
+        <div class="repo-footer-row">
+          <span class="status-hint">
+            {% if repo.unsynced_minutes >= 60 %}
+              <span class="badge-ready">Ready for sync (≥ 60 min)</span>
+            {% elif repo.unsynced_minutes > 0 %}
+              <span>{{ 60 - repo.unsynced_minutes }} min remaining to auto-sync</span>
+            {% else %}
+              <span>All logged time synced to GitHub</span>
+            {% endif %}
+          </span>
+          
+          {% if repo.unsynced_minutes > 0 %}
+            <button class="btn-manual-sync" data-repo-id="{{ repo.id }}">
+              Sync Now
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p>No active repositories visible. Click "Refresh" or restore from the Archive below.</p>
+      </div>
+    {% endfor %}
+  </div>
+
+  <!-- Collapsible Archive Section -->
+  {% include 'components/archive_section.html' %}
+</section>

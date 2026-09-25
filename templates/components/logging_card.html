@@ -1,0 +1,64 @@
+<!-- Column 1: Time Logging Card -->
+<section class="card logging-card">
+  <div class="card-header">
+    <h2>Log Development Time</h2>
+    <span class="card-hint">Saves to local SQLite</span>
+  </div>
+
+  <form action="{{ url_for('time.log_time') }}" method="POST" class="log-form" id="logTimeForm">
+    <div class="form-group">
+      <label for="repo_id">Target Repository</label>
+      {% if repositories %}
+        <select name="repo_id" id="repo_id" required>
+          <option value="" disabled selected>Select a repository...</option>
+          {% for repo in repositories %}
+            <option value="{{ repo.id }}">
+              {{ repo.full_name }} ({{ repo.unsynced_minutes }}m pending)
+            </option>
+          {% endfor %}
+        </select>
+      {% else %}
+        <div class="no-repos-hint">
+          No repositories found. 
+          <form action="{{ url_for('repos.refresh_repositories') }}" method="POST" style="display:inline;">
+            <button type="submit" class="btn-link">Refresh Repositories</button>
+          </form>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="task_description">Task Description</label>
+      <input type="text" id="task_description" name="task_description" placeholder="e.g. Implement auth flow and API routes" required />
+    </div>
+
+    <!-- Centralized Round Circular Timer GUI -->
+    {% include 'components/timer_dial.html' %}
+
+    <!-- Hidden duration in seconds sent to server -->
+    <input type="hidden" id="duration_seconds" name="duration_seconds" value="0" />
+
+    <button type="submit" class="btn-primary" id="logTimeSubmitBtn" {% if not repositories %}disabled{% endif %}>
+      Log Time Entry
+    </button>
+
+    <!-- Dedicated Container for Logged Duration -->
+    <div class="logged-duration-card">
+      <div class="logged-duration-header">
+        <label for="duration_minutes">Logged Duration</label>
+        <span class="logged-duration-hint">Manual duration adjustment</span>
+      </div>
+      <div class="input-with-stepper">
+        <input type="number" id="duration_minutes" name="duration_minutes" min="0" max="1440" value="0" placeholder="Min" />
+        <span class="unit-text">min</span>
+        <input type="number" id="duration_secs_input" min="0" max="59" value="0" placeholder="Sec" style="width: 75px;" />
+        <span class="unit-text">sec</span>
+        <div class="quick-pill-buttons">
+          <button type="button" class="quick-pill" data-minutes="15">+15m</button>
+          <button type="button" class="quick-pill" data-minutes="30">+30m</button>
+          <button type="button" class="quick-pill" data-minutes="60">+60m</button>
+        </div>
+      </div>
+    </div>
+  </form>
+</section>

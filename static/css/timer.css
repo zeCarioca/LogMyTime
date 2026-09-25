@@ -318,3 +318,40 @@
   background: #dc2626;
   transform: translateY(-1px);
 }
+
+/* Dedicated Container for Logged Duration */
+.logged-duration-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 4px;
+  backdrop-filter: blur(10px);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.logged-duration-card:focus-within {
+  border-color: rgba(99, 102, 241, 0.5);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);
+}
+
+.logged-duration-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logged-duration-header label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  letter-spacing: -0.01em;
+}
+
+.logged-duration-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}

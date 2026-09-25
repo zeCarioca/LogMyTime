@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from models import db
-from routes.main_routes import main_bp
+from routes import main_bp, auth_bp, repo_bp, time_bp
+
 
 def create_app():
     app = Flask(__name__)
@@ -21,12 +22,16 @@ def create_app():
 
     # Register blueprints
     app.register_blueprint(main_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(repo_bp)
+    app.register_blueprint(time_bp)
 
     # Create tables
     with app.app_context():
         db.create_all()
 
     return app
+
 
 app = create_app()
 

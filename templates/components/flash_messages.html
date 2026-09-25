@@ -1,0 +1,13 @@
+<!-- Flash Notifications -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-container">
+      {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">
+          <div class="flash-content">{{ message }}</div>
+          <button class="flash-close" onclick="this.parentElement.remove()">&times;</button>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}

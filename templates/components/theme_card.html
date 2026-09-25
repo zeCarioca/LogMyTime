@@ -1,0 +1,50 @@
+<!-- Column 3: Theme Customizer & Saved Palette Profiles -->
+<div class="theme-column-wrapper">
+  <!-- Oklch Algorithmic Palette Customizer -->
+  <section class="card bg-theme-card" id="bgThemeContainer">
+    <!-- Rendered dynamically by standalone OklchPalettePicker -->
+  </section>
+
+  <!-- Saved Palette Profiles Container -->
+  <section class="card saved-profiles-card" id="savedPalettesContainer">
+    <div class="card-header saved-profiles-header" id="savedProfilesHeader">
+      <div class="title-with-count">
+        <span class="theme-icon">💾</span>
+        <h2>Saved Palettes</h2>
+        <span class="saved-profiles-count" id="savedProfilesCount">0 saved</span>
+      </div>
+      <button type="button" class="btn-saved-profiles-expand" id="savedProfilesToggleBtn" aria-expanded="false" title="Toggle saved palettes panel">
+        <span class="saved-profiles-toggle-text">View</span>
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" class="saved-profiles-chevron">
+          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="saved-profiles-content" id="savedProfilesContent">
+      <p class="theme-explainer">
+        Save the active palette as a custom profile to quickly switch or restore themes.
+      </p>
+
+      <!-- Save Current Palette Input Group -->
+      <div class="save-profile-input-group">
+        <input 
+          type="text" 
+          id="profileNameInput" 
+          class="profile-name-input" 
+          placeholder="Profile name (e.g. Cyberpunk Dark)" 
+          maxlength="32"
+          autocomplete="off"
+        />
+        <button type="button" id="savePaletteBtn" class="btn-save-profile" title="Save current palette">
+          Save
+        </button>
+      </div>
+
+      <!-- List of Saved Palette Profiles -->
+      <div class="saved-profiles-list" id="savedProfilesList">
+        <!-- Dynamically populated via JS -->
+      </div>
+    </div>
+  </section>
+</div>

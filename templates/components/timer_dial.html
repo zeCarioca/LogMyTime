@@ -1,0 +1,70 @@
+<!-- Centralized Round Circular Timer GUI -->
+<div class="timer-container-card">
+  <div class="timer-wrapper">
+    <svg id="timerSvg" class="timer-ring-svg" viewBox="0 0 300 300">
+      <defs>
+        <!-- 0 - 15 min: Cool Blue / Indigo -->
+        <linearGradient id="timerGradientQ1" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#06b6d4" />
+          <stop offset="100%" stop-color="#6366f1" />
+        </linearGradient>
+        <!-- 15 - 30 min: Warm Yellow / Amber -->
+        <linearGradient id="timerGradientQ2" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#f59e0b" />
+        </linearGradient>
+        <!-- 30 - 45 min: Warm Orange / Tangerine -->
+        <linearGradient id="timerGradientQ3" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f59e0b" />
+          <stop offset="100%" stop-color="#f97316" />
+        </linearGradient>
+        <!-- 45 - 60+ min: Intense Crimson / Vibrant Red -->
+        <linearGradient id="timerGradientQ4" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f43f5e" />
+          <stop offset="100%" stop-color="#ef4444" />
+        </linearGradient>
+      </defs>
+      <circle class="timer-ring-bg" cx="150" cy="150" r="130"></circle>
+      <circle id="timerProgress" class="timer-ring-progress" cx="150" cy="150" r="130"></circle>
+    </svg>
+
+    <button id="timerButton" class="timer-center-btn" type="button" aria-label="Start or toggle timer">
+      <div id="timeDisplay" class="timer-time">00:00:00</div>
+      <div id="timerStatus" class="timer-status-hint">Click to Start</div>
+      
+      <div class="timer-action-icon" id="actionIcon">
+        <!-- Play Icon SVG -->
+        <svg id="playIcon" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"/>
+        </svg>
+        <!-- Pause Icon SVG -->
+        <svg id="pauseIcon" viewBox="0 0 24 24" style="display: none;">
+          <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+        </svg>
+      </div>
+    </button>
+  </div>
+
+  <!-- Dedicated Controls: Pause, Resume, Stop -->
+  <div class="timer-control-buttons">
+    <button type="button" id="pauseBtn" class="btn-timer-action btn-timer-pause" disabled title="Pause active timer">
+      <svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+      Pause
+    </button>
+    <button type="button" id="resumeBtn" class="btn-timer-action btn-timer-resume" disabled title="Resume paused timer">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      Resume
+    </button>
+    <button type="button" id="stopBtn" class="btn-timer-action btn-timer-stop" disabled title="Stop timer & apply duration">
+      <svg viewBox="0 0 24 24"><path d="M6 6h12v12H6z"/></svg>
+      Stop
+    </button>
+  </div>
+
+  <div id="autoAppliedHint" class="auto-applied-tag" style="display: none;">
+    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor">
+      <path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/>
+    </svg>
+    <span id="autoAppliedText">Time applied to duration</span>
+  </div>
+</div>
