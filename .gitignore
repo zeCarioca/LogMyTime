@@ -1,0 +1,15 @@
+# Virtual Environment
+venv/
+env/
+.venv/
+
+# Environment secrets (NEVER push this!)
+.env
+
+# SQLite Database
+*.db
+instance/
+
+# Python cache
+__pycache__/
+*.pyc
