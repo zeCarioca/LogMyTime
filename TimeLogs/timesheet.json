@@ -1,7 +1,7 @@
 {
   "repository": "zeCarioca/LogMyTime",
-  "last_synced_at": "2026-09-25T17:55:51Z",
-  "total_logged_minutes": 12.7,
+  "last_synced_at": "2026-09-25T18:58:55Z",
+  "total_logged_minutes": 57.7,
   "entries": [
     {
       "id": 2,
@@ -18,7 +18,15 @@
       "duration_minutes": 8,
       "logged_at": "2026-09-25T17:50:40Z",
       "synced_at": "2026-09-25T17:55:51Z"
+    },
+    {
+      "id": 4,
+      "task_description": "Better Stylistic features",
+      "duration_seconds": 2700,
+      "duration_minutes": 45,
+      "logged_at": "2026-09-25T18:58:47Z",
+      "synced_at": "2026-09-25T18:58:55Z"
     }
   ],
-  "total_logged_seconds": 762
+  "total_logged_seconds": 3462
 }
