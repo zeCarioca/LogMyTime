@@ -29,6 +29,7 @@ log_my_time/
 │   └── components/             # Modular dashboard components (< 120 lines each)
 │       ├── header.html         # Top navigation header & user profile
 │       ├── flash_messages.html # Flash alert notices
+│       ├── tabs_nav.html       # Top-level functional tab switcher (Timer, Data)
 │       ├── hero_card.html      # Unauthenticated welcome & OAuth setup state
 │       ├── logging_card.html   # Repo selector & duration controls
 │       ├── timer_dial.html     # Circular SVG timer dial & action buttons
@@ -36,12 +37,14 @@ log_my_time/
 │       ├── archive_section.html# Collapsible archived repositories
 │       ├── theme_card.html     # Oklch customizer & saved palettes panel
 │       ├── activity_table.html # Recent activity logs table
+│       ├── data_tab.html       # Data & metrics placeholder tab view
 │       └── reset_modal.html    # Timer reset confirmation modal
 └── static/
     ├── css/
     │   ├── style.css           # Modern dark-mode styling and UI tokens
     │   └── timer.css           # Circular timer & duration controls styles
     └── js/
+        ├── tabs.js             # Tab navigation controller
         ├── main.js             # Timer engine, quick steppers, modal & archive toggles
         └── ...                 # Modular Oklch palette generators & theme managers
 ```
@@ -149,4 +152,14 @@ The application features an interactive color palette customizer built on the **
    - Click **Save** to store the full palette snapshot (including base hue, harmony, aesthetic profile, and locked states) in persistent storage.
    - Browse your saved profiles in the list and click **Load** to instantly re-apply any saved palette to the application.
    - Click the delete button (`×`) beside any profile to remove it.
+
+---
+
+## 📑 Navigation Tabs (Timer & Data)
+
+Beneath the header, a sleek tab container organizes core functions:
+
+- **Timer Tab**: The default active tab containing the current application interface (time logger, circular SVG timer dial, tracked repositories with 60-minute sync progress, theme customizer, and activity logs).
+- **Data Tab**: A dedicated placeholder tab ready for repository analytics, metric insights, and historical time distributions.
+
 

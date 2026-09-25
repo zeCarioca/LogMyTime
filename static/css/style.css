@@ -1627,3 +1627,139 @@ body {
   padding: 16px 8px;
   line-height: 1.4;
 }
+
+/* ==========================================================================
+   Tabs Navigation Container & Panes
+   ========================================================================== */
+.tabs-container {
+  margin-bottom: 24px;
+}
+
+.tabs-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(17, 24, 39, 0.6);
+  border: 1px solid var(--card-border);
+  padding: 5px;
+  border-radius: 12px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.nav-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  user-select: none;
+}
+
+.nav-tab-btn .tab-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s ease;
+}
+
+.nav-tab-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-tab-btn.active {
+  color: #ffffff;
+  background: var(--primary-gradient);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 14px var(--card-glow);
+}
+
+.nav-tab-btn.active .tab-icon {
+  transform: scale(1.08);
+}
+
+.tab-pane {
+  display: block;
+  animation: tabFadeIn 0.25s ease-out;
+}
+
+.tab-pane[hidden] {
+  display: none !important;
+}
+
+@keyframes tabFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Empty Data Tab Content State */
+.data-tab-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 380px;
+  padding: 48px 24px;
+}
+
+.empty-data-state {
+  max-width: 520px;
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px dashed var(--card-border);
+  border-radius: 18px;
+  padding: 56px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.empty-data-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.empty-data-icon svg {
+  width: 32px;
+  height: 32px;
+}
+
+.empty-data-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.empty-data-desc {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 420px;
+}

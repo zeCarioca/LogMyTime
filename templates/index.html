@@ -17,31 +17,43 @@
     <!-- Flash Notifications -->
     {% include 'components/flash_messages.html' %}
 
-    {% if not user %}
-      <!-- Unauthenticated Welcome State -->
-      {% include 'components/hero_card.html' %}
-    {% else %}
-      <!-- Main Dashboard Grid -->
-      <main class="dashboard-grid">
-        <!-- Column 1: Time Logging & Quick Timer Dial -->
-        {% include 'components/logging_card.html' %}
+    <!-- Tabs Container -->
+    {% include 'components/tabs_nav.html' %}
 
-        <!-- Column 2: Repository Sync Progress Toward 60-min Threshold -->
-        {% include 'components/repos_card.html' %}
+    <!-- Tab 1: Timer (Core App GUI) -->
+    <div id="tab-timer" class="tab-pane active" role="tabpanel" aria-labelledby="tab-btn-timer">
+      {% if not user %}
+        <!-- Unauthenticated Welcome State -->
+        {% include 'components/hero_card.html' %}
+      {% else %}
+        <!-- Main Dashboard Grid -->
+        <main class="dashboard-grid">
+          <!-- Column 1: Time Logging & Quick Timer Dial -->
+          {% include 'components/logging_card.html' %}
 
-        <!-- Column 3: Theme Customizer & Saved Palette Profiles -->
-        {% include 'components/theme_card.html' %}
-      </main>
+          <!-- Column 2: Repository Sync Progress Toward 60-min Threshold -->
+          {% include 'components/repos_card.html' %}
 
-      <!-- Activity Logs Table -->
-      {% include 'components/activity_table.html' %}
-    {% endif %}
+          <!-- Column 3: Theme Customizer & Saved Palette Profiles -->
+          {% include 'components/theme_card.html' %}
+        </main>
+
+        <!-- Activity Logs Table -->
+        {% include 'components/activity_table.html' %}
+      {% endif %}
+    </div>
+
+    <!-- Tab 2: Data (New Tab) -->
+    <div id="tab-data" class="tab-pane" role="tabpanel" aria-labelledby="tab-btn-data" hidden>
+      {% include 'components/data_tab.html' %}
+    </div>
   </div>
 
   <!-- Reset Current Timer Confirmation Pop-up Modal -->
   {% include 'components/reset_modal.html' %}
 
   <!-- Core Scripts -->
+  <script src="{{ url_for('static', filename='js/tabs.js') }}"></script>
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script src="{{ url_for('static', filename='js/color-math.js') }}"></script>
   <script src="{{ url_for('static', filename='js/color-harmony.js') }}"></script>

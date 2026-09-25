@@ -43,6 +43,7 @@ log_my_time/
 │   └── components/             # Subcomponents extracted (< 120 lines each)
 │       ├── header.html         # Top navigation header & user profile
 │       ├── flash_messages.html # Flash alert notices
+│       ├── tabs_nav.html       # Top-level functional tab switcher (Timer, Data)
 │       ├── hero_card.html      # Unauthenticated welcome & OAuth setup state
 │       ├── logging_card.html   # Repo selector & duration controls
 │       ├── timer_dial.html     # Circular SVG timer dial & action buttons
@@ -50,12 +51,14 @@ log_my_time/
 │       ├── archive_section.html# Collapsible archived repositories
 │       ├── theme_card.html     # Oklch customizer & saved palettes panel
 │       ├── activity_table.html # Recent activity logs table
+│       ├── data_tab.html       # Data & metrics placeholder tab view
 │       └── reset_modal.html    # Timer reset confirmation modal
 └── static/
     ├── css/
     │   ├── style.css           # Global tokens, dark theme, layout, responsive grid, theme panel
     │   └── timer.css           # Circular timer SVG dial & timer control buttons
     └── js/
+        ├── tabs.js             # Tab navigation controller
         ├── main.js             # Circular timer engine, duration sync, modal, archive collapsible
         ├── color-math.js       # Pure Oklch/Oklab/sRGB color space transforms & gamut clipping
         ├── color-harmony.js    # Harmony calculation rules (Triadic, etc.) & aesthetic profiles
