@@ -1,7 +1,7 @@
 {
   "repository": "zeCarioca/LogMyTime",
-  "last_synced_at": "2026-09-25T18:58:55Z",
-  "total_logged_minutes": 57.7,
+  "last_synced_at": "2026-09-25T20:59:52Z",
+  "total_logged_minutes": 102.7,
   "entries": [
     {
       "id": 2,
@@ -26,7 +26,15 @@
       "duration_minutes": 45,
       "logged_at": "2026-09-25T18:58:47Z",
       "synced_at": "2026-09-25T18:58:55Z"
+    },
+    {
+      "id": 5,
+      "task_description": "Oklch Palette Features",
+      "duration_seconds": 2700,
+      "duration_minutes": 45,
+      "logged_at": "2026-09-25T20:59:43Z",
+      "synced_at": "2026-09-25T20:59:52Z"
     }
   ],
-  "total_logged_seconds": 3462
+  "total_logged_seconds": 6162
 }
