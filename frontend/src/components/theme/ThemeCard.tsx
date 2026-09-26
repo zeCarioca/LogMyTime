@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 
-export const ThemeCard: React.FC = () => {
-  const [accentHue, setAccentHue] = useState<number>(260);
+interface ThemeCardProps {
+  accentHue: number;
+  onHueChange: (hue: number) => void;
+}
 
-  const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const hue = Number(e.target.value);
-    setAccentHue(hue);
-    document.documentElement.style.setProperty('--primary-hue', hue.toString());
-  };
-
+export const ThemeCard: React.FC<ThemeCardProps> = ({ accentHue, onHueChange }) => {
   return (
     <div className="theme-card card">
       <h2 className="card-title">Oklch Theme Palette</h2>
@@ -20,7 +17,7 @@ export const ThemeCard: React.FC = () => {
           min="0"
           max="360"
           value={accentHue}
-          onChange={handleHueChange}
+          onChange={(e) => onHueChange(Number(e.target.value))}
           className="hue-slider"
         />
       </div>
@@ -32,3 +29,4 @@ export const ThemeCard: React.FC = () => {
     </div>
   );
 };
+

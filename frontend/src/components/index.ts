@@ -6,4 +6,6 @@ export * from './repos/ReposCard';
 export * from './commits/CommitPairingQueue';
 export * from './commits/LocalGitStatus';
 export * from './theme/ThemeCard';
+export * from './theme/SavedPalettes';
 export * from './data/HierarchyTree';
+
