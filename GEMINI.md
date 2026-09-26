@@ -40,6 +40,7 @@ Core capabilities:
 | `httpx` over `requests` | Fully async; required for `async def` route handlers |
 | Oklch CSS variables | Perceptually uniform; enables runtime palette swapping without JS |
 | SQLite kept (not Postgres) | Local-first by design; zero infra; existing `instance/database.db` migrated in-place |
+| No Auto-Pairing by Recent Commits | Timelogs default to `commit = None` and retain explicit project info; routing sends `project` and `commit` datapoints to frontend |
 
 ---
 
@@ -201,12 +202,10 @@ Computed: `unsynced_seconds`, `unsynced_minutes`.
 
 ### Commit Detection & Pairing Flow
 
-1. The backend `pairing_service.py` polls GitHub for new commits every `commit_poll_interval_minutes` (default 5).
-2. When a new commit is detected for a tracked repository, it is matched against the **most recent unsynced `TimeEntry`** for that repo.
-3. The matched pair is stored as a `CommitLink` with `status = pending`.
-4. The frontend `useCommitPoller.ts` hook polls `/commits/pending` and surfaces a **CommitPairingQueue** UI: the user sees the commit message, the matched timelog, and can **Confirm** or **Reject**.
-5. On **Confirm**: `CommitLink.status` → `confirmed`, `TimeEntry.is_synced = True`, and `sync_service.py` pushes the pairing to the `timelogs` branch on GitHub via the Contents API.
-6. On **Reject**: `CommitLink.status` → `rejected`; the `TimeEntry` remains unsynced and eligible for the next commit match.
+1. Automatic pairing by recent commits is disabled in `pairing_service.py`.
+2. Timelogs default to `commit = None` upon creation while retaining full project information (`project`).
+3. Each timelog datapoint delivered through routing endpoints sends both `project` and `commit` fields to the frontend.
+4. On explicit **Confirm** of a commit link: `CommitLink.status` → `confirmed`, `TimeEntry.is_synced = True`, and `sync_service.py` pushes the pairing to the `timelogs` branch on GitHub via the Contents API.
 
 ### Local Git State
 - `git_service.py` runs `git` CLI subprocess commands inside the user-configured `local_repo_path`.

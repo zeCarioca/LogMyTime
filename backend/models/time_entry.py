@@ -14,8 +14,20 @@ class TimeEntry(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     is_synced = Column(Boolean, default=False)
     synced_at = Column(DateTime, nullable=True)
+    commit_sha = Column(String(40), nullable=True, default=None)
+    commit_message = Column(String(500), nullable=True, default=None)
 
     repository = relationship('GithubRepository', back_populates='time_entries')
+
+    @property
+    def project(self):
+        if self.repository:
+            return self.repository.full_name
+        return None
+
+    @property
+    def commit(self):
+        return self.commit_sha
 
     @property
     def total_seconds(self):

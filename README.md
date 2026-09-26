@@ -119,10 +119,19 @@ pip install -r requirements.txt
 ```
 
 ### 4. Run the Application
-```bash
-python app.py
+Double-click `run.bat` in the root directory (or execute it in terminal):
+```cmd
+run.bat
 ```
-Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)** in your browser, click **Connect GitHub**, grant repository permissions, and start logging your development time!
+Alternatively, launch backend and frontend manually in separate terminals:
+```bash
+# Terminal 1: Backend (FastAPI)
+cd backend && python -m uvicorn app:app --host 127.0.0.1 --port 8000 --reload
+
+# Terminal 2: Frontend (Vite + React)
+cd frontend && npm run dev
+```
+Open **[http://localhost:5173](http://localhost:5173)** in your browser, connect your GitHub account, and start logging development time!
 
 ---
 

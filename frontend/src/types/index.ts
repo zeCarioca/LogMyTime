@@ -22,6 +22,7 @@ export interface GithubRepository {
 export interface TimeEntry {
   id: number;
   repo_id: number;
+  project?: string | null;
   task_description: string;
   duration_seconds: number;
   duration_minutes: number;
@@ -29,6 +30,9 @@ export interface TimeEntry {
   synced_at: string | null;
   created_at: string;
   formatted_duration: string;
+  commit?: string | null;
+  commit_sha?: string | null;
+  commit_message?: string | null;
 }
 
 export type CommitStatus = 'pending' | 'confirmed' | 'rejected';

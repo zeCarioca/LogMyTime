@@ -52,6 +52,8 @@ async def get_hierarchy(
         for entry in time_entries:
             entries_data.append({
                 'id': entry.id,
+                'project': entry.project or r.full_name,
+                'commit': entry.commit,
                 'task_description': entry.task_description,
                 'duration_seconds': entry.total_seconds,
                 'duration_minutes': round(entry.total_seconds / 60.0, 2),
@@ -117,7 +119,7 @@ async def export_csv(
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
-        'repository', 'user', 'entry_id', 'task_description',
+        'repository', 'project', 'user', 'entry_id', 'commit', 'task_description',
         'duration_seconds', 'duration_minutes', 'is_synced',
         'synced_at', 'date', 'timestamp'
     ])
@@ -126,7 +128,7 @@ async def export_csv(
         entries = db.query(TimeEntry).filter(TimeEntry.repo_id == r.id).order_by(TimeEntry.created_at.asc()).all()
         for e in entries:
             writer.writerow([
-                r.full_name, user.github_username, e.id, e.task_description,
+                r.full_name, e.project or r.full_name, user.github_username, e.id, e.commit or '', e.task_description,
                 e.total_seconds, round(e.total_seconds / 60.0, 2), e.is_synced,
                 e.synced_at.strftime('%Y-%m-%d %H:%M:%S') if e.synced_at else '',
                 e.created_at.strftime('%Y-%m-%d'), e.created_at.strftime('%Y-%m-%d %H:%M:%S')

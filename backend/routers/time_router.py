@@ -34,7 +34,9 @@ async def log_time(payload: TimeEntryCreate, user: User = Depends(get_current_us
         task_description=payload.task_description.strip(),
         duration_seconds=sec,
         duration_minutes=min_val,
-        is_synced=False
+        is_synced=False,
+        commit_sha=payload.commit_sha or payload.commit,
+        commit_message=payload.commit_message
     )
     db.add(entry)
     db.commit()

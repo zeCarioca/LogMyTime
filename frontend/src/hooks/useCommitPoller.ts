@@ -9,11 +9,14 @@ export function useCommitPoller(intervalMs = 15000, enabled = true) {
 
   const poll = useCallback(async () => {
     if (!enabled) return;
+    setLoading(true);
     try {
       const pending = await commitsApi.getPending();
       setQueue(pending);
     } catch (e) {
       console.error('Failed to poll pending commit links', e);
+    } finally {
+      setLoading(false);
     }
   }, [enabled]);
 

@@ -6,6 +6,9 @@ export interface LogTimePayload {
   task_description: string;
   duration_seconds?: number;
   duration_minutes?: number;
+  commit?: string;
+  commit_sha?: string;
+  commit_message?: string;
 }
 
 export const timeApi = {
