@@ -9,7 +9,7 @@ class GitHubService:
     def __init__(self, access_token: str):
         self.access_token = access_token
         self.headers = {
-            'Authorization': f'token {access_token}',
+            'Authorization': f'Bearer {access_token}',
             'Accept': 'application/vnd.github.v3+json',
             'User-Agent': 'LogMyTime-Tracker'
         }
@@ -22,18 +22,13 @@ class GitHubService:
         return None
 
     def get_user_repositories(self):
-        """
-        Fetch available repositories (both owned and collaborator/shared).
-        Uses affiliation=owner,collaborator,organization_member.
-        """
-        params = {
-            'affiliation': 'owner,collaborator,organization_member',
-            'sort': 'updated',
-            'per_page': 100
-        }
+        """Fetch available repositories (owned and collaborator/shared)."""
+        params = {'affiliation': 'owner,collaborator,organization_member', 'sort': 'updated', 'per_page': 100}
         res = requests.get(f'{GITHUB_API_BASE}/user/repos', headers=self.headers, params=params, timeout=10)
         if res.status_code == 200:
             return res.json()
+        if res.status_code == 401:
+            raise PermissionError("GitHub token has expired or is invalid. Please sign in again.")
         return []
 
     def get_branch(self, repo_full_name: str, branch: str):

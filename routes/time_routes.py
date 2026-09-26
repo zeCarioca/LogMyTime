@@ -75,11 +75,15 @@ def log_time():
                     'success'
                 )
             else:
-                error_msg = sync_result.get('error', 'GitHub API error')
-                flash(
-                    f'Threshold reached ({total_unsynced_minutes} min), but GitHub sync encountered an issue: {error_msg}. Time remains saved locally.',
-                    'warning'
-                )
+                status_code = sync_result.get('status_code')
+                if status_code == 401:
+                    flash('GitHub token has expired or is invalid. Please sign out and sign in with GitHub again.', 'danger')
+                else:
+                    error_msg = sync_result.get('error', 'GitHub API error')
+                    flash(
+                        f'Threshold reached ({total_unsynced_minutes} min), but GitHub sync encountered an issue: {error_msg}. Time remains saved locally.',
+                        'warning'
+                    )
         except Exception as e:
             flash(
                 f'Threshold reached ({total_unsynced_minutes} min), but an error occurred during sync: {str(e)}.',
@@ -129,7 +133,13 @@ def manual_sync(repo_id):
                 'message': f'Synced {len(unsynced_entries)} entries to {repo.full_name} on branch `timelogs` (TimeLogs/timesheet.json)'
             })
         else:
-            return jsonify({'status': 'error', 'message': sync_result.get('error')}), 500
+            status_code = sync_result.get('status_code', 500)
+            if status_code == 401:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'GitHub token has expired or is invalid. Please sign out and sign in with GitHub again.'
+                }), 401
+            return jsonify({'status': 'error', 'message': sync_result.get('error')}), status_code
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
