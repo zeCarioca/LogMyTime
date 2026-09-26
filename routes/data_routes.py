@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Blueprint, jsonify, Response, request
 from models import db, GithubRepository, TimeEntry
 from services.github_service import GitHubService
+from services.preference_service import get_selected_repository, set_selected_repository
 from routes.auth_routes import get_current_user
 
 data_bp = Blueprint('data', __name__)
@@ -20,10 +21,13 @@ def get_hierarchy():
         return jsonify({'error': 'Unauthorized'}), 401
 
     repo_id_filter = request.args.get('repo_id', type=int)
+    repo_name_filter = request.args.get('repo', type=str)
     
     repos_query = GithubRepository.query.filter_by(user_id=user.id)
     if repo_id_filter:
         repos_query = repos_query.filter_by(id=repo_id_filter)
+    elif repo_name_filter:
+        repos_query = repos_query.filter_by(full_name=repo_name_filter.strip())
     repos = repos_query.order_by(GithubRepository.full_name.asc()).all()
 
     gh = GitHubService(user.access_token)
@@ -96,8 +100,27 @@ def get_hierarchy():
 
     return jsonify({
         'current_user': user.github_username,
+        'selected_repository': get_selected_repository(),
         'repositories_count': len(hierarchy),
         'hierarchy': hierarchy
+    })
+
+
+@data_bp.route('/data/preference/selected-repo', methods=['POST'])
+def update_selected_repo_preference():
+    """Save selected repository into user preferences."""
+    user = get_current_user()
+    if not user:
+        return jsonify({'status': 'error', 'message': 'Unauthorized'}), 401
+
+    payload = request.get_json(silent=True) or {}
+    repo_full_name = payload.get('repository', '').strip()
+
+    set_selected_repository(repo_full_name)
+    return jsonify({
+        'status': 'success',
+        'selected_repository': repo_full_name,
+        'message': f'Preference updated to {repo_full_name or "all repositories"}'
     })
 
 
@@ -113,9 +136,12 @@ def export_csv():
         return jsonify({'error': 'Unauthorized'}), 401
 
     repo_id_filter = request.args.get('repo_id', type=int)
+    repo_name_filter = request.args.get('repo', type=str)
     repos_query = GithubRepository.query.filter_by(user_id=user.id)
     if repo_id_filter:
         repos_query = repos_query.filter_by(id=repo_id_filter)
+    elif repo_name_filter:
+        repos_query = repos_query.filter_by(full_name=repo_name_filter.strip())
     repos = repos_query.order_by(GithubRepository.full_name.asc()).all()
 
     output = io.StringIO()

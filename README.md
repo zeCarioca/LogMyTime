@@ -160,19 +160,20 @@ The application features an interactive color palette customizer built on the **
 Beneath the header, a sleek tab container organizes core functions:
 
 - **Timer Tab**: The default active tab containing the current application interface (time logger, circular SVG timer dial, tracked repositories with 60-minute sync progress, theme customizer, and activity logs).
-- **Timer Tab**: The default active tab containing the current application interface (time logger, circular SVG timer dial, tracked repositories with 60-minute sync progress, theme customizer, and activity logs).
-- **Data Tab**: A dedicated analytics dashboard displaying a structured hierarchy (`Repository -> UserList (self) -> Commits -> Time -> Date`) along with KPI cards and an **Export CSV for Python** button (`/data/export/csv`) designed for immediate ingestion and analysis in pandas.
+- **Data Tab**: A dedicated analytics dashboard displaying a structured hierarchy (`Repository -> UserList (self) -> Commits -> Time -> Date`) along with KPI cards, a **Repository Selector container** that persists user preferences, and an **Export CSV for Python** button (`/data/export/csv`) designed for immediate ingestion and analysis in pandas.
 
 ---
 
 ## 📈 Data & Analytics Dashboard
 
-The **Data** tab structures development metrics according to an intuitive hierarchy:
-1. **Repository**: Grouped by repository with branch details, total logged duration, and commit counts.
-2. **UserList**: Defaults to the authenticated developer (`self`).
-3. **Commits**: Linked commit history for the active author.
-4. **Time**: Detailed task time logs and sync statuses (`Synced` vs `Pending`).
-5. **Date**: Timestamps and ISO dates for chronological tracking.
+The **Data** tab features:
+1. **Repository Selector Container**: Allows scoping analytics to a specific repository or viewing an aggregated overview across all tracked repositories. The chosen repository is automatically persisted to user preferences (`archive_preferences.json` via `/data/preference/selected-repo`), reloading seamlessly across sessions.
+2. **Structured Hierarchy**:
+   - **Repository**: Grouped by repository with branch details, total logged duration, and commit counts.
+   - **UserList**: Defaults to the authenticated developer (`self`).
+   - **Commits**: Linked commit history for the active author.
+   - **Time**: Detailed task time logs and sync statuses (`Synced` vs `Pending`).
+   - **Date**: Timestamps and ISO dates for chronological tracking.
 
 ### 📥 Python Data Analysis CSV Export
 Click the **"Export CSV for Python"** button in the Data tab header (or query `/data/export/csv`) to download an audit CSV file pre-formatted for Python & Pandas data exploration:

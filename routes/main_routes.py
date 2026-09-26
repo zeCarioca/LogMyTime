@@ -1,7 +1,7 @@
 import os
 from flask import Blueprint, render_template
 from models import db, GithubRepository, TimeEntry
-from services.preference_service import load_archive_preferences
+from services.preference_service import load_archive_preferences, get_selected_repository
 from routes.auth_routes import get_current_user
 
 main_bp = Blueprint('main', __name__)
@@ -42,6 +42,7 @@ def index():
 
     client_id = os.getenv('GITHUB_CLIENT_ID', '').strip()
     is_oauth_configured = bool(client_id and client_id != 'your_github_client_id_here')
+    selected_repo = get_selected_repository() if user else ''
 
     return render_template(
         'index.html',
@@ -50,5 +51,6 @@ def index():
         active_repositories=active_repositories,
         archived_repositories=archived_repositories,
         recent_entries=recent_entries,
-        is_oauth_configured=is_oauth_configured
+        is_oauth_configured=is_oauth_configured,
+        selected_repo=selected_repo
     )

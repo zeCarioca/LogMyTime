@@ -25,7 +25,7 @@
       .replace(/'/g, '&#039;');
   }
 
-  async function loadHierarchyData() {
+  async function loadHierarchyData(repoFilter) {
     const loadingEl = document.getElementById('hierarchy-loading');
     const containerEl = document.getElementById('hierarchy-container');
     const emptyEl = document.getElementById('hierarchy-empty');
@@ -36,12 +36,33 @@
     containerEl.style.display = 'none';
     if (emptyEl) emptyEl.style.display = 'none';
 
+    // If repoFilter was not passed, check selector input or active preference
+    if (repoFilter === undefined) {
+      const repoSelect = document.getElementById('data-repo-select');
+      if (repoSelect) {
+        repoFilter = repoSelect.value;
+      }
+    }
+
     try {
-      const response = await fetch('/data/hierarchy');
+      let url = '/data/hierarchy';
+      if (repoFilter) {
+        url += `?repo=${encodeURIComponent(repoFilter)}`;
+      }
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Failed to load data: ${response.statusText}`);
       }
       const data = await response.json();
+
+      // If backend returned a saved preference and selector isn't set, sync it
+      if (data.selected_repository && repoFilter === undefined) {
+        const repoSelect = document.getElementById('data-repo-select');
+        if (repoSelect && !repoSelect.value) {
+          repoSelect.value = data.selected_repository;
+        }
+      }
+
       renderHierarchy(data);
     } catch (err) {
       loadingEl.style.display = 'none';
@@ -192,4 +213,8 @@
       });
     }
   });
+
+  window.LogMyTimeDataDashboard = {
+    loadData: loadHierarchyData
+  };
 })();

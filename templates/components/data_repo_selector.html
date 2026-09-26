@@ -1,0 +1,47 @@
+<!-- Dedicated Repository Selector Container with Preference Persistence -->
+<div class="data-repo-selector-card card">
+  <div class="repo-selector-header">
+    <div class="selector-title-wrap">
+      <svg class="selector-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+      </svg>
+      <div>
+        <h3 class="selector-title">Repository Filter & Scope</h3>
+        <p class="selector-desc">Select an active repository to focus analytics. Automatically saved to user preferences.</p>
+      </div>
+    </div>
+    <div class="selector-status-badge" id="selector-saved-status">
+      <span class="status-indicator"></span>
+      <span class="status-text">Saved in preferences</span>
+    </div>
+  </div>
+
+  <div class="repo-selector-body">
+    <div class="selector-input-row">
+      <label for="data-repo-select" class="selector-label">Target Repository:</label>
+      <div class="custom-select-wrap">
+        <select id="data-repo-select" class="data-repo-select" aria-label="Select Repository">
+          <option value="">All Repositories (Aggregated)</option>
+          {% for repo in active_repositories %}
+            <option value="{{ repo.full_name }}" {% if selected_repo == repo.full_name %}selected{% endif %}>
+              {{ repo.full_name }} ({{ repo.unsynced_minutes }}m pending)
+            </option>
+          {% endfor %}
+        </select>
+        <span class="select-chevron">▾</span>
+      </div>
+
+      <button type="button" class="btn-clear-repo-filter" id="btn-clear-repo-filter" title="Clear filter to view all repositories">
+        View All
+      </button>
+    </div>
+
+    <div class="selector-active-summary" id="selector-active-summary">
+      <span class="summary-prefix">Active Preference:</span>
+      <code id="active-repo-badge" class="active-repo-code">
+        {% if selected_repo %}{{ selected_repo }}{% else %}All Repositories{% endif %}
+      </code>
+    </div>
+  </div>
+</div>
