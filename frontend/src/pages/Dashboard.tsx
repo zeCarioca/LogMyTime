@@ -13,7 +13,7 @@ import { timeApi } from '../api/time';
 
 export const Dashboard: React.FC = () => {
   const { seconds, isRunning, start, pause, reset, addMinutes, formattedTime } = useTimer();
-  const { activeRepos, refreshRepos, toggleArchive, refetchRepos } = useRepos();
+  const { activeRepos, archivedRepos, refreshRepos, toggleArchive, refetchRepos } = useRepos();
   const { queue, actionLoadingId, confirmPairing, rejectPairing } = useCommitPoller();
   const { gitStatus, setLocalPath } = useGitStatus();
   const { accentHue, savedPalettes, updateHue, saveCurrentPalette, deletePalette } = useTheme();
@@ -56,11 +56,13 @@ export const Dashboard: React.FC = () => {
       {/* Column 2: Repositories & Commit Pairing Queue */}
       <div className="dashboard-col">
         <ReposCard
-          repos={activeRepos}
+          activeRepos={activeRepos}
+          archivedRepos={archivedRepos}
           onRefresh={refreshRepos}
           onToggleArchive={toggleArchive}
           onManualSync={handleManualSync}
         />
+
         <LocalGitStatus status={gitStatus} onSetPath={setLocalPath} />
         <CommitPairingQueue
           queue={queue}

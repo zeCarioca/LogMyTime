@@ -26,8 +26,10 @@ Core capabilities:
 | `frontend/` scaffold (hooks, api/, components, pages, styles) | ✅ Built; Vite dev on port 5173 |
 | `instance/database.db` schema migration (CommitLink + new User cols) | ✅ Applied non-destructively |
 | Backend endpoints verified live (`/auth/me`, `/repos/`, `/commits/git-status`) | ✅ Verified |
-| End-to-end OAuth → Timer → CommitPairing → Sync flow | ⏳ Needs full e2e test |
-| Legacy Flask root files (`app.py`, `models.py`, `routes/`, `services/`, `src/`) | ⚠️ Still present — safe to delete after e2e passes |
+| End-to-end OAuth → Timer → CommitPairing → Sync flow | ✅ Verified & Functional |
+| Frontend Repository Unarchiving & Theme Persistence | ✅ Built & Verified |
+| Legacy Flask root files (`app.py`, `models.py`, `routes/`, `services/`, `src/`) | ⚠️ Still present — safe to delete after final review |
+
 
 ### Key Decisions Made
 
