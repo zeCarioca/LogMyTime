@@ -44,6 +44,19 @@ class GitHubService:
             return res.json()
         return None
 
+    def get_commits(self, repo_full_name: str, branch: str = None, per_page: int = 30, author: str = None):
+        """Fetch commits from a repository with optional branch and author filters."""
+        url = f'{GITHUB_API_BASE}/repos/{repo_full_name}/commits'
+        params = {'per_page': per_page}
+        if branch:
+            params['sha'] = branch
+        if author:
+            params['author'] = author
+        res = requests.get(url, headers=self.headers, params=params, timeout=10)
+        if res.status_code == 200:
+            return res.json()
+        return []
+
     def ensure_branch(self, repo_full_name: str, branch: str = 'timelogs', base_branch: str = 'main'):
         """
         Ensure that the specified branch exists. If not, creates it from base_branch.

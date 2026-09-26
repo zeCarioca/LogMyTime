@@ -160,6 +160,28 @@ The application features an interactive color palette customizer built on the **
 Beneath the header, a sleek tab container organizes core functions:
 
 - **Timer Tab**: The default active tab containing the current application interface (time logger, circular SVG timer dial, tracked repositories with 60-minute sync progress, theme customizer, and activity logs).
-- **Data Tab**: A dedicated placeholder tab ready for repository analytics, metric insights, and historical time distributions.
+- **Timer Tab**: The default active tab containing the current application interface (time logger, circular SVG timer dial, tracked repositories with 60-minute sync progress, theme customizer, and activity logs).
+- **Data Tab**: A dedicated analytics dashboard displaying a structured hierarchy (`Repository -> UserList (self) -> Commits -> Time -> Date`) along with KPI cards and an **Export CSV for Python** button (`/data/export/csv`) designed for immediate ingestion and analysis in pandas.
+
+---
+
+## 📈 Data & Analytics Dashboard
+
+The **Data** tab structures development metrics according to an intuitive hierarchy:
+1. **Repository**: Grouped by repository with branch details, total logged duration, and commit counts.
+2. **UserList**: Defaults to the authenticated developer (`self`).
+3. **Commits**: Linked commit history for the active author.
+4. **Time**: Detailed task time logs and sync statuses (`Synced` vs `Pending`).
+5. **Date**: Timestamps and ISO dates for chronological tracking.
+
+### 📥 Python Data Analysis CSV Export
+Click the **"Export CSV for Python"** button in the Data tab header (or query `/data/export/csv`) to download an audit CSV file pre-formatted for Python & Pandas data exploration:
+```python
+import pandas as pd
+
+# Load LogMyTime exported data
+df = pd.read_csv('logmytime_export_YYYYMMDD_HHMMSS.csv')
+print(df.groupby('repository')['duration_minutes'].sum())
+```
 
 
