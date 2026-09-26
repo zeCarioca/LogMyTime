@@ -175,6 +175,12 @@ The **Data** tab features:
    - **Time**: Detailed task time logs and sync statuses (`Synced` vs `Pending`).
    - **Date**: Timestamps and ISO dates for chronological tracking.
 
+3. **Activity Visualizations & Plots Container**:
+   - **Display Type Selector**: Choose between different visual analytics views tailored for time tracking:
+     - **📊 Time by Day (Bar Plot)**: Daily bar distribution showing total logged duration and hover tooltips with logged task summaries.
+     - **🗓️ Daily Activity Heatmap (52 Weeks)**: A GitHub-style calendar matrix displaying activity intensity across the last 52 weeks with multi-level color grading and interactive hover states.
+   - Synchronizes automatically whenever the repository filter or data changes.
+
 ### 📥 Python Data Analysis CSV Export
 Click the **"Export CSV for Python"** button in the Data tab header (or query `/data/export/csv`) to download an audit CSV file pre-formatted for Python & Pandas data exploration:
 ```python

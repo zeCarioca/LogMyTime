@@ -1,0 +1,188 @@
+/* Activity Visualizations & Plots Component Card Layout & Controls */
+@import url('data-plots-svg.css');
+
+.data-plots-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.data-plots-card:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 10px 36px var(--card-glow);
+}
+
+.plots-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--card-border);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.plots-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.plots-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.plots-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  letter-spacing: -0.01em;
+}
+.plots-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+.plot-type-selector-wrap { display: flex; align-items: center; gap: 10px; }
+.plot-selector-label { font-size: 0.82rem; font-weight: 600; color: var(--text-muted); }
+
+.plot-display-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--card-border);
+  border-radius: 9px;
+  padding: 8px 32px 8px 12px;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.plot-display-select:hover,
+.plot-display-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.plot-display-select option {
+  background: #111827;
+  color: #fff;
+}
+
+.plots-body {
+  padding: 20px 24px 24px;
+  position: relative;
+}
+
+.plots-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.plots-empty-state svg {
+  color: var(--text-subtle);
+  opacity: 0.6;
+}
+
+.plot-viewport {
+  position: relative;
+  width: 100%;
+}
+
+.plot-meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.plot-meta-info .meta-highlight {
+  color: var(--text-main);
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plot-legend {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.bar-fill-bullet {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  background: var(--primary-gradient);
+}
+
+.legend-scale {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.scale-label {
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  margin: 0 4px;
+}
+
+.heat-box {
+  width: 11px;
+  height: 11px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.heat-box.lvl-0 { background: rgba(255, 255, 255, 0.05); }
+.heat-box.lvl-1 { background: rgba(99, 102, 241, 0.35); }
+.heat-box.lvl-2 { background: rgba(99, 102, 241, 0.6); }
+.heat-box.lvl-3 { background: rgba(99, 102, 241, 0.85); }
+.heat-box.lvl-4 { background: #818cf8; box-shadow: 0 0 6px rgba(129, 140, 248, 0.5); }
+
+.svg-scroll-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+}
+.svg-scroll-container::-webkit-scrollbar { height: 6px; }
+.svg-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}

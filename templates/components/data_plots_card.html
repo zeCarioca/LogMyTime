@@ -1,0 +1,59 @@
+<!-- Analytics Visualizations & Plots Container -->
+<div class="data-plots-card card" id="data-plots-container">
+  <div class="card-header plots-header">
+    <div class="plots-header-left">
+      <div class="plots-icon-badge">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10"></line>
+          <line x1="12" y1="20" x2="12" y2="4"></line>
+          <line x1="6" y1="20" x2="6" y2="14"></line>
+        </svg>
+      </div>
+      <div>
+        <h3 class="plots-title">Activity Visualizations</h3>
+        <p class="plots-subtitle">Interactive temporal and task distribution analytics</p>
+      </div>
+    </div>
+
+    <!-- Display Type Selector -->
+    <div class="plot-type-selector-wrap">
+      <label for="plot-display-type" class="plot-selector-label">Display Type:</label>
+      <div class="custom-select-wrap">
+        <select id="plot-display-type" class="plot-display-select" aria-label="Select Plot Display Type">
+          <option value="bar">📊 Time by Day (Bar Plot)</option>
+          <option value="heatmap">🗓️ Daily Activity Heatmap (52 Weeks)</option>
+        </select>
+        <span class="select-chevron">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card-body plots-body">
+    <!-- Empty / No Data Placeholder for Plots -->
+    <div id="plots-empty-state" class="plots-empty-state" style="display: none;">
+      <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <p>No activity logged for the selected scope to render visualizations.</p>
+    </div>
+
+    <!-- Active Plot Render Viewport -->
+    <div id="plot-viewport" class="plot-viewport">
+      <!-- Plot Legend / Summary Meta Bar -->
+      <div id="plot-meta-bar" class="plot-meta-bar">
+        <div class="plot-meta-info" id="plot-meta-info">
+          <span class="meta-highlight" id="plot-meta-summary">-</span>
+        </div>
+        <div class="plot-legend" id="plot-legend"></div>
+      </div>
+
+      <!-- Plot Canvas / SVG Container -->
+      <div id="plot-render-area" class="plot-render-area"></div>
+
+      <!-- Dynamic Tooltip -->
+      <div id="plot-tooltip" class="plot-tooltip" style="display: none;"></div>
+    </div>
+  </div>
+</div>

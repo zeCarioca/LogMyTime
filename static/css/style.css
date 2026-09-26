@@ -1,6 +1,7 @@
 @import url('timer.css');
 @import url('data-dashboard.css');
 @import url('data-repo-selector.css');
+@import url('data-plots.css');
 
 /* Layout & Global Themes */
 :root {

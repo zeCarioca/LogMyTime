@@ -1,6 +1,6 @@
 /**
  * Data Tab Dashboard Controller
- * Fetches and renders hierarchy: Repository -> User -> Commits -> Time -> Date
+ * Fetches and coordinates hierarchy: Repository -> User -> Commits -> Time -> Date
  */
 (function () {
   'use strict';
@@ -15,16 +15,6 @@
     return `${s}s`;
   }
 
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
-  }
-
   async function loadHierarchyData(repoFilter) {
     const loadingEl = document.getElementById('hierarchy-loading');
     const containerEl = document.getElementById('hierarchy-container');
@@ -36,12 +26,9 @@
     containerEl.style.display = 'none';
     if (emptyEl) emptyEl.style.display = 'none';
 
-    // If repoFilter was not passed, check selector input or active preference
     if (repoFilter === undefined) {
       const repoSelect = document.getElementById('data-repo-select');
-      if (repoSelect) {
-        repoFilter = repoSelect.value;
-      }
+      if (repoSelect) repoFilter = repoSelect.value;
     }
 
     try {
@@ -50,17 +37,12 @@
         url += `?repo=${encodeURIComponent(repoFilter)}`;
       }
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to load data: ${response.statusText}`);
-      }
+      if (!response.ok) throw new Error(`Failed to load data: ${response.statusText}`);
       const data = await response.json();
 
-      // If backend returned a saved preference and selector isn't set, sync it
       if (data.selected_repository && repoFilter === undefined) {
         const repoSelect = document.getElementById('data-repo-select');
-        if (repoSelect && !repoSelect.value) {
-          repoSelect.value = data.selected_repository;
-        }
+        if (repoSelect && !repoSelect.value) repoSelect.value = data.selected_repository;
       }
 
       renderHierarchy(data);
@@ -68,7 +50,8 @@
       loadingEl.style.display = 'none';
       if (emptyEl) {
         emptyEl.style.display = 'block';
-        emptyEl.innerHTML = `<p class="text-danger">Failed to load analytics: ${escapeHtml(err.message)}</p>`;
+        const esc = window.LogMyTimeTemplates ? window.LogMyTimeTemplates.escapeHtml : String;
+        emptyEl.innerHTML = `<p class="text-danger">Failed to load analytics: ${esc(err.message)}</p>`;
       }
     }
   }
@@ -90,42 +73,27 @@
       if (kpiRepos) kpiRepos.textContent = '0';
       if (kpiCommits) kpiCommits.textContent = '0';
       if (kpiTotalTime) kpiTotalTime.textContent = '0m';
+      if (window.LogMyTimePlots && typeof window.LogMyTimePlots.render === 'function') {
+        window.LogMyTimePlots.render([]);
+      }
       return;
     }
 
     let totalGlobalSeconds = 0;
     let totalGlobalCommits = 0;
-
     let html = '';
 
-    hierarchy.forEach((repoNode, repoIdx) => {
+    const templates = window.LogMyTimeTemplates;
+
+    hierarchy.forEach((repoNode) => {
       const userNode = repoNode.user_list && repoNode.user_list[0] ? repoNode.user_list[0] : null;
-      const repoSecs = userNode ? userNode.summary.total_seconds : 0;
-      const repoCommits = userNode ? userNode.commits.length : 0;
-
-      totalGlobalSeconds += repoSecs;
-      totalGlobalCommits += repoCommits;
-
-      html += `
-        <div class="hierarchy-repo-block">
-          <div class="hierarchy-level repo-level" onclick="this.parentElement.classList.toggle('collapsed')">
-            <div class="hierarchy-title-group">
-              <span class="hierarchy-toggle-icon">▾</span>
-              <span class="repo-badge-icon">📦</span>
-              <strong class="hierarchy-name">${escapeHtml(repoNode.repository)}</strong>
-              <span class="branch-pill">${escapeHtml(repoNode.default_branch || 'main')}</span>
-            </div>
-            <div class="hierarchy-meta-group">
-              <span class="meta-tag commits-count">${repoCommits} commits</span>
-              <span class="meta-tag duration-badge">${formatDuration(repoSecs)}</span>
-            </div>
-          </div>
-
-          <div class="hierarchy-children">
-            ${userNode ? renderUserNode(userNode) : '<div class="empty-child">No user activity recorded.</div>'}
-          </div>
-        </div>
-      `;
+      if (userNode) {
+        totalGlobalSeconds += userNode.summary.total_seconds;
+        totalGlobalCommits += userNode.commits.length;
+      }
+      if (templates) {
+        html += templates.renderRepoNode(repoNode, userNode, formatDuration);
+      }
     });
 
     containerEl.innerHTML = html;
@@ -134,66 +102,10 @@
     if (kpiRepos) kpiRepos.textContent = hierarchy.length;
     if (kpiCommits) kpiCommits.textContent = totalGlobalCommits;
     if (kpiTotalTime) kpiTotalTime.textContent = formatDuration(totalGlobalSeconds);
-  }
 
-  function renderUserNode(user) {
-    return `
-      <div class="hierarchy-user-block">
-        <div class="hierarchy-level user-level">
-          <div class="hierarchy-title-group">
-            <span class="user-badge-icon">👤</span>
-            <span class="user-handle">@${escapeHtml(user.username)}</span>
-            <span class="role-pill">Default: Self</span>
-          </div>
-          <div class="hierarchy-meta-group">
-            <span class="user-summary">${user.time_records.length} time logs</span>
-          </div>
-        </div>
-
-        <div class="hierarchy-split-grid">
-          <!-- Commits Branch -->
-          <div class="hierarchy-subcard commits-subcard">
-            <div class="subcard-header">
-              <span class="subcard-icon">⚡</span>
-              <h4>Recent Commits</h4>
-              <span class="count-tag">${user.commits.length}</span>
-            </div>
-            <div class="subcard-list">
-              ${user.commits.length ? user.commits.map(c => `
-                <div class="commit-item">
-                  <span class="commit-sha"><code>${escapeHtml(c.sha)}</code></span>
-                  <span class="commit-msg" title="${escapeHtml(c.message)}">${escapeHtml(c.message)}</span>
-                  <span class="commit-date">${c.date ? escapeHtml(c.date.slice(0, 10)) : ''}</span>
-                </div>
-              `).join('') : '<div class="empty-subtext">No commits found for current user</div>'}
-            </div>
-          </div>
-
-          <!-- Time & Date Records Branch -->
-          <div class="hierarchy-subcard time-subcard">
-            <div class="subcard-header">
-              <span class="subcard-icon">⏱️</span>
-              <h4>Time Records & Date</h4>
-              <span class="count-tag">${user.time_records.length}</span>
-            </div>
-            <div class="subcard-list">
-              ${user.time_records.length ? user.time_records.map(t => `
-                <div class="time-item ${t.is_synced ? 'synced' : 'pending'}">
-                  <div class="time-main">
-                    <span class="time-task">${escapeHtml(t.task_description)}</span>
-                    <span class="time-date-badge">${escapeHtml(t.date)}</span>
-                  </div>
-                  <div class="time-meta">
-                    <span class="time-duration">${escapeHtml(t.formatted_duration)}</span>
-                    <span class="time-status-dot" title="${t.is_synced ? 'Synced' : 'Pending'}"></span>
-                  </div>
-                </div>
-              `).join('') : '<div class="empty-subtext">No time tracked for this repo yet</div>'}
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
+    if (window.LogMyTimePlots && typeof window.LogMyTimePlots.render === 'function') {
+      window.LogMyTimePlots.render(hierarchy);
+    }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -201,16 +113,10 @@
     const refreshBtn = document.getElementById('btn-refresh-hierarchy');
 
     if (dataTabBtn) {
-      dataTabBtn.addEventListener('click', () => {
-        // Load on-demand when switching to data tab
-        loadHierarchyData();
-      });
+      dataTabBtn.addEventListener('click', () => loadHierarchyData());
     }
-
     if (refreshBtn) {
-      refreshBtn.addEventListener('click', () => {
-        loadHierarchyData();
-      });
+      refreshBtn.addEventListener('click', () => loadHierarchyData());
     }
   });
 

@@ -1,0 +1,88 @@
+/* SVG Charts, Bars, Heatmap Cells & Tooltip Styling */
+
+.plot-svg {
+  display: block;
+  user-select: none;
+}
+
+.plot-bar {
+  fill: var(--primary);
+  opacity: 0.85;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.bar-group:hover .plot-bar {
+  opacity: 1;
+  fill: #818cf8;
+  filter: drop-shadow(0 4px 10px rgba(99, 102, 241, 0.45));
+}
+
+.bar-label-val {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  fill: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.bar-group:hover .bar-label-val {
+  opacity: 1;
+  fill: var(--text-main);
+}
+
+.bar-label-date {
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  fill: var(--text-subtle);
+}
+
+.heatmap-cell {
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.25);
+  transform-origin: center;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.5));
+}
+
+.heatmap-cell.lvl-0 { fill: rgba(255, 255, 255, 0.05); }
+.heatmap-cell.lvl-1 { fill: rgba(99, 102, 241, 0.35); }
+.heatmap-cell.lvl-2 { fill: rgba(99, 102, 241, 0.6); }
+.heatmap-cell.lvl-3 { fill: rgba(99, 102, 241, 0.85); }
+.heatmap-cell.lvl-4 { fill: #818cf8; }
+
+.heatmap-day-label {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  fill: var(--text-subtle);
+}
+
+.plot-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: var(--text-main);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.tooltip-tasks {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
