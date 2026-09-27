@@ -62,3 +62,17 @@ export interface GitStatus {
   staged_files?: string[];
   modified_files?: string[];
 }
+
+export interface BulkLinkPayload {
+  commit_sha: string;
+  timelog_ids: number[];
+}
+
+export interface BulkLinkResponse {
+  status: string;
+  message: string;
+  updated_count: number;
+  commit_sha: string;
+  updated_timelog_ids: number[];
+}
+

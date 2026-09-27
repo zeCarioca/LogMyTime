@@ -4,4 +4,6 @@ export * from './useTimer';
 export * from './useCommitPoller';
 export * from './useGitStatus';
 export * from './useTheme';
+export * from './useBulkLink';
+
 

@@ -247,6 +247,7 @@ Computed: `unsynced_seconds`, `unsynced_minutes`.
 
 ### 1. General Principles
 - **Preserve documentation**: Keep all existing comments and docstrings unless explicitly changing the associated logic.
+- **Prompt Enhancement & Clarification**: Ask clarifying questions when user prompts are ambiguous, underspecified, or have multiple valid implementation options, in order to enhance accuracy and alignment before proceeding.
 - **Modularity**:
   - Routers handle HTTP concerns only (parsing, auth checks, response shape).
   - Business logic lives in `services/`.

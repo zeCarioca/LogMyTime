@@ -90,9 +90,12 @@ log_my_time/
    - Fetches `TimeLogs/timesheet.json` on the `timelogs` branch via GitHub Contents API: `GET /repos/{owner}/{repo}/contents/TimeLogs/timesheet.json?ref=timelogs` (decoding Base64 and obtaining the `sha` if it exists).
    - Appends all pending entries into the structured timesheet format.
    - Pushes the updated JSON file to the `timelogs` branch via `PUT /repos/{owner}/{repo}/contents/TimeLogs/timesheet.json` with commit message: `chore: sync logged time (+X mins) [LogMyTime]`.
-   - In a safe atomic database transaction, updates the local records to `is_synced = True` with the `synced_at` timestamp.
+### 5. Multi-Timelog to Single Commit Bulk Linking
+- Enables selecting multiple unlinked/pending timelogs in the UI and assigning them to a single GitHub commit SHA in a single atomic database operation via `POST /commits/bulk-link`.
+- Ensures all requested timelog IDs exist and belong to the active user's repositories before updating, rolling back completely if any ID is invalid.
 
 ---
+
 
 ## 🚀 Setup & Execution Guide
 

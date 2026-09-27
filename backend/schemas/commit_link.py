@@ -13,3 +13,15 @@ class CommitLinkOut(BaseModel):
     created_at: datetime
     time_entry: TimeEntryOut
     model_config = ConfigDict(from_attributes=True)
+
+class BulkLinkTimelogsRequest(BaseModel):
+    commit_sha: str
+    timelog_ids: list[int]
+
+class BulkLinkTimelogsResponse(BaseModel):
+    status: str
+    message: str
+    updated_count: int
+    commit_sha: str
+    updated_timelog_ids: list[int]
+

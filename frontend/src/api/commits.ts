@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { CommitLink, GitStatus } from '../types';
+import { CommitLink, GitStatus, BulkLinkPayload, BulkLinkResponse } from '../types';
 
 export const commitsApi = {
   getPending: async (): Promise<CommitLink[]> => {
@@ -24,4 +24,9 @@ export const commitsApi = {
     });
     return response.data;
   },
+  bulkLink: async (payload: BulkLinkPayload): Promise<BulkLinkResponse> => {
+    const response = await apiClient.post<BulkLinkResponse>('/commits/bulk-link', payload);
+    return response.data;
+  },
 };
+

@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from models import get_db, User, CommitLink, CommitStatus
-from schemas import CommitLinkOut
+from models import get_db, User, TimeEntry, CommitLink, CommitStatus
+from schemas import CommitLinkOut, BulkLinkTimelogsRequest, BulkLinkTimelogsResponse
 from routers.auth_router import get_current_user
 from services import GitService, PairingService, SyncService
+
 
 router = APIRouter(tags=["Commit Pairing"])
 
@@ -51,3 +52,54 @@ async def set_local_repo_path(path: str, user: User = Depends(get_current_user),
     user.local_repo_path = path.strip()
     db.commit()
     return {"status": "success", "local_repo_path": user.local_repo_path}
+
+@router.post("/bulk-link", response_model=BulkLinkTimelogsResponse)
+async def bulk_link_timelogs(
+    payload: BulkLinkTimelogsRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if not payload.timelog_ids:
+        raise HTTPException(status_code=400, detail="timelog_ids cannot be empty")
+
+    clean_sha = payload.commit_sha.strip()
+    if not clean_sha:
+        raise HTTPException(status_code=400, detail="commit_sha cannot be empty")
+
+    # Scope search to user owned repositories
+    existing_entries = db.query(TimeEntry).join(
+        TimeEntry.repository
+    ).filter(
+        TimeEntry.id.in_(payload.timelog_ids),
+        TimeEntry.repository.has(user_id=user.id)
+    ).all()
+
+    found_ids = {entry.id for entry in existing_entries}
+    missing_ids = set(payload.timelog_ids) - found_ids
+
+    if missing_ids:
+        raise HTTPException(
+            status_code=442,
+            detail=f"The following timelog IDs were not found or do not belong to you: {sorted(list(missing_ids))}"
+        )
+
+    try:
+        updated_count = db.query(TimeEntry).filter(
+            TimeEntry.id.in_(payload.timelog_ids)
+        ).update(
+            {TimeEntry.commit_sha: clean_sha},
+            synchronize_session=False
+        )
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Database update failed: {str(e)}")
+
+    return BulkLinkTimelogsResponse(
+        status="success",
+        message=f"Successfully assigned {updated_count} timelog(s) to commit {clean_sha}",
+        updated_count=updated_count,
+        commit_sha=clean_sha,
+        updated_timelog_ids=payload.timelog_ids
+    )
+

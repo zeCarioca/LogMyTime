@@ -5,6 +5,8 @@ export * from './timer/LoggingCard';
 export * from './repos/ReposCard';
 export * from './commits/CommitPairingQueue';
 export * from './commits/LocalGitStatus';
+export * from './commits/BulkLinkSection';
+
 export * from './theme/ThemeCard';
 export * from './theme/SavedPalettes';
 export * from './data/HierarchyTree';
