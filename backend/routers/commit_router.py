@@ -28,7 +28,7 @@ async def get_unassigned_time(user: User = Depends(get_current_user), db: Sessio
     for e in entries:
         if e.repository:
             e.repo_name = e.repository.full_name
-            e.project = e.repository.full_name
+    
     return entries
 
 @router.get("/pending", response_model=list[CommitLinkOut])
