@@ -1,11 +1,13 @@
 import csv
 import io
 from datetime import datetime
-from flask import Blueprint, jsonify, Response, request
-from models import db, GithubRepository, TimeEntry
+
+from flask import Blueprint, Response, jsonify, request
+
+from models import GithubRepository, TimeEntry
+from routes.auth_routes import get_current_user
 from services.github_service import GitHubService
 from services.preference_service import get_selected_repository, set_selected_repository
-from routes.auth_routes import get_current_user
 
 data_bp = Blueprint('data', __name__)
 

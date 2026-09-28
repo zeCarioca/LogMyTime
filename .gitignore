@@ -15,4 +15,4 @@ __pycache__/
 *.pyc
 
 # Node 
-frontend/node_modules/.vite
+node_modules/

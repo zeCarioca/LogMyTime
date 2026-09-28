@@ -1,144 +1,97 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { TimeEntry, RecentCommit } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { RecentCommit } from '../../types';
 import { commitsApi } from '../../api/commits';
-import { UnassignedTimeList } from './UnassignedTimeList';
-import { RecentCommitsList } from './RecentCommitsList';
 
 interface CommitPairingQueueProps {
   onPairConfirmed?: () => void;
 }
 
-export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ onPairConfirmed }) => {
-  const [unassignedEntries, setUnassignedEntries] = useState<TimeEntry[]>([]);
+export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
   const [recentCommits, setRecentCommits] = useState<RecentCommit[]>([]);
-  const [selectedTimelogIds, setSelectedTimelogIds] = useState<number[]>([]);
-  const [selectedCommitSha, setSelectedCommitSha] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const loadData = useCallback(async () => {
+  const fetchCommits = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const [unassigned, commits] = await Promise.all([
-        commitsApi.getUnassignedTime(),
-        commitsApi.getRecent(),
-      ]);
-      setUnassignedEntries(unassigned);
-      setRecentCommits(commits);
-    } catch (e) {
-      console.error('Failed to load manual pairing data', e);
+      const data = await commitsApi.getRecent();
+      setRecentCommits(data);
+    } catch (e: any) {
+      console.error('Failed to fetch recent commits', e);
+      setError('Failed to fetch data from http://127.0.0.1:8000/commits/recent');
     } finally {
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  const handleToggleSelectTime = (id: number) => {
-    setSelectedTimelogIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
-  };
-
-  const handleToggleSelectAll = () => {
-    if (selectedTimelogIds.length === unassignedEntries.length) {
-      setSelectedTimelogIds([]);
-    } else {
-      setSelectedTimelogIds(unassignedEntries.map((e) => e.id));
-    }
-  };
-
-  const handleConfirmPairing = async () => {
-    if (selectedTimelogIds.length === 0 || !selectedCommitSha) return;
-
-    setSubmitting(true);
-    setFeedback(null);
-    try {
-      const res = await commitsApi.bulkLink({
-        timelog_ids: selectedTimelogIds,
-        commit_sha: selectedCommitSha,
-      });
-
-      setFeedback({ type: 'success', message: res.message || 'Pairing confirmed successfully!' });
-      setSelectedTimelogIds([]);
-      setSelectedCommitSha(null);
-      await loadData();
-      if (onPairConfirmed) onPairConfirmed();
-    } catch (e: any) {
-      console.error('Failed to confirm pairing', e);
-      setFeedback({
-        type: 'error',
-        message: e?.response?.data?.detail || 'Failed to confirm pairing. Please try again.',
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const selectedCommit = recentCommits.find((c) => c.sha === selectedCommitSha);
+    fetchCommits();
+  }, []);
 
   return (
     <div className="commit-pairing-card card">
       <div className="card-header-row">
         <h2 className="card-title">Manual Commit Pairing Container</h2>
-        <button className="btn btn-xs btn-outline" onClick={loadData} disabled={loading}>
-          {loading ? 'Refreshing...' : '🔄 Refresh Data'}
+        <button className="btn btn-xs btn-outline" onClick={fetchCommits} disabled={loading}>
+          {loading ? 'Loading...' : '🔄 Refresh Data'}
         </button>
       </div>
 
-      {feedback && (
-        <div className={`alert-banner ${feedback.type === 'success' ? 'alert-success' : 'alert-danger'}`}>
-          {feedback.message}
+      {error && (
+        <div className="alert-banner alert-danger">
+          {error}
         </div>
       )}
 
-      {/* Two Parallel Scrollers Container */}
-      <div className="pairing-dual-panels">
-        <UnassignedTimeList
-          unassignedEntries={unassignedEntries}
-          selectedIds={selectedTimelogIds}
-          onToggleSelect={handleToggleSelectTime}
-          onToggleSelectAll={handleToggleSelectAll}
-        />
-        <RecentCommitsList
-          commits={recentCommits}
-          selectedSha={selectedCommitSha}
-          onSelectCommit={setSelectedCommitSha}
-        />
-      </div>
-
-      {/* Bottom Action Bar */}
-      <div className="pairing-action-bar">
-        <div className="selection-summary">
-          {selectedTimelogIds.length > 0 ? (
-            <span>
-              Selected <strong>{selectedTimelogIds.length}</strong> timelog(s)
-              {selectedCommit ? (
-                <>
-                  {' '}→ Target: <code className="sha-code">git #{selectedCommit.short_sha}</code> ({selectedCommit.repo_name})
-                </>
-              ) : (
-                ' → Pick a commit on the right panel'
-              )}
-            </span>
-          ) : (
-            <span className="hint-text">Select one or more timelogs on the left and a commit on the right to pair.</span>
-          )}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+        {/* Left Column: Empty Timelogs Container */}
+        <div style={{
+          background: 'var(--card-bg, #1e1e2e)',
+          border: '1px solid var(--card-border, #313244)',
+          borderRadius: '8px',
+          padding: '1rem',
+          minHeight: '300px'
+        }}>
+          <h3 style={{ fontSize: '1rem', margin: '0 0 0.75rem 0', color: 'var(--primary, #cba6f7)' }}>Timelogs</h3>
+          <p style={{ color: 'var(--text-muted, #a6adc8)', fontSize: '0.85rem' }}>No timelogs available.</p>
         </div>
 
-        <button
-          className="btn btn-primary btn-block confirm-pairing-btn"
-          onClick={handleConfirmPairing}
-          disabled={selectedTimelogIds.length === 0 || !selectedCommitSha || submitting}
-        >
-          {submitting
-            ? 'Pairing and Syncing...'
-            : `✓ Confirm & Assign Selection (${selectedTimelogIds.length})`}
-        </button>
+        {/* Right Column: Recent Commits Container */}
+        <div style={{
+          background: 'var(--card-bg, #1e1e2e)',
+          border: '1px solid var(--card-border, #313244)',
+          borderRadius: '8px',
+          padding: '1rem',
+          minHeight: '300px'
+        }}>
+          <h3 style={{ fontSize: '1rem', margin: '0 0 0.75rem 0', color: 'var(--primary, #cba6f7)' }}>Recent Commits</h3>
+          {recentCommits.length === 0 ? (
+            <p style={{ color: 'var(--text-muted, #a6adc8)', fontSize: '0.85rem' }}>No commits available.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto' }}>
+              {recentCommits.map((c, index) => (
+                <div 
+                  key={c.sha || index} 
+                  style={{ 
+                    background: 'var(--bg-gradient, #11111b)', 
+                    border: '1px solid var(--card-border, #313244)', 
+                    borderRadius: '6px', 
+                    padding: '0.75rem 1rem' 
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                    <span style={{ fontWeight: 'bold', color: 'var(--primary, #cba6f7)' }}>{c.message}</span>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted, #a6adc8)' }}>{c.date}</span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-color, #cdd6f4)' }}>{c.repo_name}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
 };
+

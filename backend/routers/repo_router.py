@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from models import get_db, User, GithubRepository
 from schemas import RepositoryOut
+from sqlalchemy.orm import Session
+
+from models import GithubRepository, User, get_db
 from routers.auth_router import get_current_user
 from services import GitHubService, load_archive_preferences, save_archive_preference
 

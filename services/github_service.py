@@ -1,6 +1,7 @@
 import base64
 import json
 from datetime import datetime
+
 import requests
 
 GITHUB_API_BASE = 'https://api.github.com'

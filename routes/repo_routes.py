@@ -1,8 +1,12 @@
-from flask import Blueprint, request, redirect, url_for, flash, jsonify
-from models import db, GithubRepository
-from services.github_service import GitHubService
-from services.preference_service import load_archive_preferences, save_archive_preference
+from flask import Blueprint, flash, jsonify, redirect, request, url_for
+
+from models import GithubRepository, db
 from routes.auth_routes import get_current_user
+from services.github_service import GitHubService
+from services.preference_service import (
+    load_archive_preferences,
+    save_archive_preference,
+)
 
 repo_bp = Blueprint('repos', __name__)
 
@@ -40,7 +44,7 @@ def refresh_repositories():
         refresh_user_repos(user)
         flash('Repositories refreshed successfully from GitHub!', 'success')
     except Exception as e:
-        flash(f'Failed to refresh repositories: {str(e)}', 'danger')
+        flash(f'Failed to refresh repositories: {e!s}', 'danger')
 
     return redirect(url_for('main.index'))
 

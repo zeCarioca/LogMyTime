@@ -40,7 +40,7 @@ export const RecentCommitsList: React.FC<RecentCommitsListProps> = ({
                   type="radio"
                   name="recent-commit"
                   checked={isSelected}
-                  onChange={() => {}} // handled by parent onClick
+                  onChange={() => { }} // handled by parent onClick
                   className="item-radio"
                 />
                 <div className="item-details">

@@ -1,19 +1,21 @@
-from services.github_service import GitHubService
 from services.git_service import GitService
+from services.github_service import GitHubService
+from services.pairing_service import PairingService
 from services.preference_service import (
-    load_archive_preferences, save_archive_preference,
-    get_selected_repository, set_selected_repository
+    get_selected_repository,
+    load_archive_preferences,
+    save_archive_preference,
+    set_selected_repository,
 )
 from services.sync_service import SyncService
-from services.pairing_service import PairingService
 
 __all__ = [
     'GitHubService',
     'GitService',
+    'PairingService',
+    'SyncService',
+    'get_selected_repository',
     'load_archive_preferences',
     'save_archive_preference',
-    'get_selected_repository',
-    'set_selected_repository',
-    'SyncService',
-    'PairingService'
+    'set_selected_repository'
 ]

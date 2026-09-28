@@ -1,5 +1,6 @@
-import subprocess
 import os
+import subprocess
+
 
 class GitService:
     def __init__(self, repo_path: str | None):
@@ -19,7 +20,8 @@ class GitService:
                 cwd=self.repo_path,
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=5,
+                check=False
             )
             return res.stdout.strip() if res.returncode == 0 else ""
         except Exception:

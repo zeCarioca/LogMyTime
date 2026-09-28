@@ -1,7 +1,10 @@
-from pydantic import BaseModel, ConfigDict
 from datetime import datetime
+
 from models.commit_link import CommitStatus
+from pydantic import BaseModel, ConfigDict
+
 from schemas.time_entry import TimeEntryOut
+
 
 class CommitLinkOut(BaseModel):
     id: int

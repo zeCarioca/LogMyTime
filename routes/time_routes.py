@@ -1,8 +1,10 @@
 from datetime import datetime
-from flask import Blueprint, request, redirect, url_for, flash, jsonify
-from models import db, GithubRepository, TimeEntry
-from services.github_service import GitHubService
+
+from flask import Blueprint, flash, jsonify, redirect, request, url_for
+
+from models import GithubRepository, TimeEntry, db
 from routes.auth_routes import get_current_user
+from services.github_service import GitHubService
 
 time_bp = Blueprint('time', __name__)
 
@@ -86,7 +88,7 @@ def log_time():
                     )
         except Exception as e:
             flash(
-                f'Threshold reached ({total_unsynced_minutes} min), but an error occurred during sync: {str(e)}.',
+                f'Threshold reached ({total_unsynced_minutes} min), but an error occurred during sync: {e!s}.',
                 'warning'
             )
     else:

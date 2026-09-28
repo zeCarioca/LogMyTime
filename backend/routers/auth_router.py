@@ -1,14 +1,15 @@
 import os
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
-from fastapi import APIRouter, Depends, HTTPException, status, Header
-from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
-from jose import JWTError, jwt
-import httpx
 
-from models import get_db, User
+import httpx
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.responses import RedirectResponse
+from jose import JWTError, jwt
 from schemas import UserOut
+from sqlalchemy.orm import Session
+
+from models import User, get_db
 from services import GitHubService
 
 router = APIRouter(tags=["Auth"])

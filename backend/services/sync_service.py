@@ -1,7 +1,10 @@
 from datetime import datetime
+
 from sqlalchemy.orm import Session
-from models import TimeEntry, CommitLink, CommitStatus, User, GithubRepository
+
+from models import CommitLink, CommitStatus, GithubRepository, TimeEntry, User
 from services.github_service import GitHubService
+
 
 class SyncService:
     @staticmethod

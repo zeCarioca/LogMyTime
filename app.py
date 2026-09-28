@@ -1,12 +1,13 @@
 import os
-from flask import Flask
+
 from dotenv import load_dotenv
+from flask import Flask
 
 # Load environment variables from .env file
 load_dotenv()
 
 from models import db
-from routes import main_bp, auth_bp, repo_bp, time_bp, data_bp
+from routes import auth_bp, data_bp, main_bp, repo_bp, time_bp
 
 
 def create_app():

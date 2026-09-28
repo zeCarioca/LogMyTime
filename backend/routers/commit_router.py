@@ -1,10 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException
+from schemas import (
+    BulkLinkTimelogsRequest,
+    BulkLinkTimelogsResponse,
+    CommitLinkOut,
+    TimeEntryOut,
+)
 from sqlalchemy.orm import Session
-from models import get_db, User, TimeEntry, CommitLink, CommitStatus
-from schemas import CommitLinkOut, TimeEntryOut, BulkLinkTimelogsRequest, BulkLinkTimelogsResponse
+
+from models import CommitLink, CommitStatus, TimeEntry, User, get_db
 from routers.auth_router import get_current_user
 from services import GitService, PairingService, SyncService
-
 
 router = APIRouter(tags=["Commit Pairing"])
 
@@ -22,8 +27,8 @@ async def get_unassigned_time(user: User = Depends(get_current_user), db: Sessio
 
     for e in entries:
         if e.repository:
-            setattr(e, 'repo_name', e.repository.full_name)
-            setattr(e, 'project', e.repository.full_name)
+            e.repo_name = e.repository.full_name
+            e.project = e.repository.full_name
     return entries
 
 @router.get("/pending", response_model=list[CommitLinkOut])
@@ -99,7 +104,7 @@ async def bulk_link_timelogs(
     if missing_ids:
         raise HTTPException(
             status_code=442,
-            detail=f"The following timelog IDs were not found or do not belong to you: {sorted(list(missing_ids))}"
+            detail=f"The following timelog IDs were not found or do not belong to you: {sorted(missing_ids)}"
         )
 
     try:
@@ -112,7 +117,7 @@ async def bulk_link_timelogs(
         db.commit()
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Database update failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Database update failed: {e!s}")
 
     return BulkLinkTimelogsResponse(
         status="success",

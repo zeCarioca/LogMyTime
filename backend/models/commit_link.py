@@ -1,8 +1,11 @@
 import enum
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
+
+from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
+
 from models.database import Base
+
 
 class CommitStatus(str, enum.Enum):
     pending = "pending"

@@ -1,8 +1,13 @@
 import os
+
 from flask import Blueprint, render_template
-from models import db, GithubRepository, TimeEntry
-from services.preference_service import load_archive_preferences, get_selected_repository
+
+from models import GithubRepository, TimeEntry, db
 from routes.auth_routes import get_current_user
+from services.preference_service import (
+    get_selected_repository,
+    load_archive_preferences,
+)
 
 main_bp = Blueprint('main', __name__)
 

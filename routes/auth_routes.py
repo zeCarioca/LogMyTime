@@ -1,9 +1,10 @@
 import os
 from urllib.parse import urlencode
-from flask import Blueprint, redirect, url_for, session, flash, request
-import requests
 
-from models import db, User
+import requests
+from flask import Blueprint, flash, redirect, request, session, url_for
+
+from models import User, db
 from services.github_service import GitHubService
 
 auth_bp = Blueprint('auth', __name__)

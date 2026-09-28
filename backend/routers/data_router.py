@@ -1,11 +1,12 @@
 import csv
 import io
 from datetime import datetime
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from models import get_db, User, GithubRepository, TimeEntry
+from models import GithubRepository, TimeEntry, User, get_db
 from routers.auth_router import get_current_user
 from services import GitHubService, get_selected_repository, set_selected_repository
 

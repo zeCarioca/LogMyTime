@@ -1,5 +1,5 @@
-import os
 import json
+import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 PREFERENCES_FILE = os.path.join(BASE_DIR, 'archive_preferences.json')
@@ -32,7 +32,7 @@ def save_archive_preference(repo_full_name: str, is_archived: bool) -> None:
         archived_set.add(repo_full_name)
     else:
         archived_set.discard(repo_full_name)
-    data['archived_repositories'] = sorted(list(archived_set))
+    data['archived_repositories'] = sorted(archived_set)
     _save_raw_preferences(data)
 
 def get_selected_repository() -> str:

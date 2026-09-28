@@ -1,8 +1,9 @@
-from datetime import datetime
 from sqlalchemy.orm import Session
-from models import TimeEntry, CommitLink, CommitStatus, GithubRepository, User
-from services.github_service import GitHubService
+
+from models import CommitLink, GithubRepository, User
 from services.git_service import GitService
+from services.github_service import GitHubService
+
 
 class PairingService:
     @staticmethod
@@ -12,6 +13,49 @@ class PairingService:
 
     @staticmethod
     async def fetch_recent_commits(db: Session, user: User) -> list[dict]:
+        import os
+        import sqlite3
+
+        db_paths = [
+            os.path.abspath("instance/local-git-log-commits.db"),
+            os.path.abspath("instance/local-git-commits.db"),
+            os.path.abspath("backend/instance/local-git-log-commits.db"),
+            os.path.abspath("backend/instance/local-git-commits.db"),
+            os.path.join(os.path.dirname(__file__), "..", "..", "instance", "local-git-log-commits.db"),
+            os.path.join(os.path.dirname(__file__), "..", "..", "instance", "local-git-commits.db"),
+        ]
+
+        db_file = None
+        for p in db_paths:
+            if os.path.exists(p):
+                db_file = p
+                break
+
+        if db_file:
+            try:
+                conn = sqlite3.connect(db_file)
+                conn.row_factory = sqlite3.Row
+                cursor = conn.cursor()
+                rows = cursor.execute(
+                    "SELECT commit_sha, short_sha, author_name, commit_date, message FROM git_commits ORDER BY id ASC"
+                ).fetchall()
+                conn.close()
+                if rows:
+                    return [
+                        {
+                            'sha': r['commit_sha'],
+                            'short_sha': r['short_sha'] or r['commit_sha'][:7],
+                            'message': r['message'] or 'Commit',
+                            'author': r['author_name'] or 'Developer',
+                            'date': r['commit_date'] or '',
+                            'repo_name': 'local-git-commits',
+                            'repo_id': 1
+                        }
+                        for r in rows
+                    ]
+            except Exception as e:
+                print(f"Error reading local git commits DB: {e}")
+
         gh = GitHubService(user.access_token) if user.access_token else None
         all_commits = []
 

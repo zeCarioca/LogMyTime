@@ -28,6 +28,9 @@ Core capabilities:
 | Backend endpoints verified live (`/auth/me`, `/repos/`, `/commits/git-status`) | ✅ Verified |
 | End-to-end OAuth → Timer → CommitPairing → Sync flow | ✅ Verified & Functional |
 | Frontend Repository Unarchiving & Theme Persistence | ✅ Built & Verified |
+| `instance/local-git-log-commits.db` local git log database | ✅ Created & Populated |
+| Frontend `pairing-panel right-panel` local commit integration | ✅ Integrated & Verified |
+| Codebase Linting (Ruff for Python & `tsc --noEmit` for TypeScript) | ✅ Cleaned & Verified |
 | Legacy Flask root files (`app.py`, `models.py`, `routes/`, `services/`, `src/`) | ⚠️ Still present — safe to delete after final review |
 
 
@@ -41,6 +44,8 @@ Core capabilities:
 | Oklch CSS variables | Perceptually uniform; enables runtime palette swapping without JS |
 | SQLite kept (not Postgres) | Local-first by design; zero infra; existing `instance/database.db` migrated in-place |
 | No Auto-Pairing by Recent Commits | Timelogs default to `commit = None` and retain explicit project info; routing sends `project` and `commit` datapoints to frontend |
+| Local Git Log Database (`instance/local-git-log-commits.db`) | Scrapes `git log` CLI output to store local commit history and populates the manual pairing right panel in real time |
+| Ruff Linter Integration | Enforces fast Python linting, import formatting, and static analysis across backend and root modules |
 
 ---
 

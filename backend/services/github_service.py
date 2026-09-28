@@ -1,6 +1,7 @@
 import base64
 import json
 from datetime import datetime
+
 import httpx
 
 GITHUB_API_BASE = 'https://api.github.com'
@@ -39,7 +40,7 @@ class GitHubService:
                 return res.json()
             return None
 
-    async def get_commits(self, repo_full_name: str, branch: str = None, per_page: int = 30, author: str = None):
+    async def get_commits(self, repo_full_name: str, branch: str | None = None, per_page: int = 30, author: str | None = None):
         url = f'{GITHUB_API_BASE}/repos/{repo_full_name}/commits'
         params = {'per_page': per_page}
         if branch:

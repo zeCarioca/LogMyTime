@@ -1,13 +1,16 @@
 import os
 from contextlib import asynccontextmanager
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 
 load_dotenv()
 
+from routers import auth_router, commit_router, data_router, repo_router, time_router
+
 from models import Base, engine
-from routers import auth_router, repo_router, time_router, commit_router, data_router
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

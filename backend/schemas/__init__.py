@@ -1,12 +1,22 @@
-from schemas.user import UserBase, UserCreate, UserOut
+from schemas.commit_link import (
+    BulkLinkTimelogsRequest,
+    BulkLinkTimelogsResponse,
+    CommitLinkOut,
+)
 from schemas.repository import RepositoryBase, RepositoryOut
 from schemas.time_entry import TimeEntryCreate, TimeEntryOut
-from schemas.commit_link import CommitLinkOut, BulkLinkTimelogsRequest, BulkLinkTimelogsResponse
+from schemas.user import UserBase, UserCreate, UserOut
 
 __all__ = [
-    'UserBase', 'UserCreate', 'UserOut',
-    'RepositoryBase', 'RepositoryOut',
-    'TimeEntryCreate', 'TimeEntryOut',
-    'CommitLinkOut', 'BulkLinkTimelogsRequest', 'BulkLinkTimelogsResponse'
+    'BulkLinkTimelogsRequest',
+    'BulkLinkTimelogsResponse',
+    'CommitLinkOut',
+    'RepositoryBase',
+    'RepositoryOut',
+    'TimeEntryCreate',
+    'TimeEntryOut',
+    'UserBase',
+    'UserCreate',
+    'UserOut'
 ]
 
