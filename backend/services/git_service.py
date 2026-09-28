@@ -41,6 +41,25 @@ class GitService:
             'date': lines[3] if len(lines) > 3 else ''
         }
 
+    def get_recent_commits(self, limit: int = 50) -> list[dict]:
+        log = self._run('log', f'-{limit}', '--format=%H%x1f%s%x1f%an%x1f%ad', '--date=iso')
+        if not log:
+            return []
+        commits = []
+        for line in log.split('\n'):
+            if not line.strip():
+                continue
+            parts = line.split('\x1f')
+            if len(parts) >= 3:
+                commits.append({
+                    'sha': parts[0],
+                    'short_sha': parts[0][:7],
+                    'message': parts[1],
+                    'author': parts[2],
+                    'date': parts[3] if len(parts) > 3 else ''
+                })
+        return commits
+
     def get_staged_files(self) -> list[str]:
         output = self._run('diff', '--cached', '--name-only')
         return [line for line in output.split('\n') if line] if output else []

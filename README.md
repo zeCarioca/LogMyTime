@@ -203,4 +203,20 @@ df = pd.read_csv('logmytime_export_YYYYMMDD_HHMMSS.csv')
 print(df.groupby('repository')['duration_minutes'].sum())
 ```
 
+---
+
+## 🔗 Manual Commit Pairing Container (User Guide)
+
+The **Manual Commit Pairing Container** provides full control over linking logged development time to repository commits:
+
+1. **Automatic pairing removed**: All new timelogs default to `commit = null` while retaining complete project information (`repo_id`, `repo_name`).
+2. **Dual Parallel Scrollers Interface**:
+   - **Left Panel (Unassigned Timelogs)**: Displays all timelogs where `commit = null`. Includes multi-select checkboxes, project badges, duration, and a *"Select All / Deselect All"* button.
+   - **Right Panel (Recent Commits)**: Fetches and displays a list of recent commits starting from the most recent, showing commit SHA (`git #sha`), commit message, author name, date, and repository name.
+3. **Multi-Selection & Assignment**:
+   - Multi-select timelogs on the left panel.
+   - Click a commit on the right panel to target it.
+   - Click **"✓ Confirm & Assign Selection"** at the bottom to link the selected timelogs to the chosen commit and sync them to GitHub.
+
+
 

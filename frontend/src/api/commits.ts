@@ -1,7 +1,15 @@
 import { apiClient } from './client';
-import { CommitLink, GitStatus, BulkLinkPayload, BulkLinkResponse } from '../types';
+import { CommitLink, GitStatus, BulkLinkPayload, BulkLinkResponse, RecentCommit, TimeEntry } from '../types';
 
 export const commitsApi = {
+  getRecent: async (): Promise<RecentCommit[]> => {
+    const response = await apiClient.get<RecentCommit[]>('/commits/recent');
+    return response.data;
+  },
+  getUnassignedTime: async (): Promise<TimeEntry[]> => {
+    const response = await apiClient.get<TimeEntry[]>('/commits/unassigned-time');
+    return response.data;
+  },
   getPending: async (): Promise<CommitLink[]> => {
     const response = await apiClient.get<CommitLink[]>('/commits/pending');
     return response.data;

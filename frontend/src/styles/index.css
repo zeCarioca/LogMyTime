@@ -286,3 +286,178 @@ body {
   border-radius: 4px;
   font-weight: 700;
 }
+
+/* Manual Pairing Dual Panels */
+.pairing-dual-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 768px) {
+  .pairing-dual-panels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pairing-panel {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  height: 280px;
+}
+
+.panel-header {
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.panel-title-group h3 {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.panel-subtitle {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.panel-scroll-body {
+  overflow-y: auto;
+  padding: 0.5rem;
+  flex: 1;
+}
+
+.empty-panel-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  gap: 0.4rem;
+}
+
+.panel-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 0.4rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.panel-item:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: var(--card-border);
+}
+
+.panel-item.selected {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--primary);
+}
+
+.item-checkbox, .item-radio {
+  margin-top: 0.2rem;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.item-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.item-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.2rem;
+}
+
+.repo-badge {
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+
+.duration-badge, .commit-sha-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.task-desc, .commit-msg {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-main);
+  word-break: break-word;
+  margin-bottom: 0.2rem;
+}
+
+.created-date, .commit-meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pairing-action-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+}
+
+.selection-summary {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.hint-text {
+  font-style: italic;
+}
+
+.sha-code {
+  font-family: monospace;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.1rem 0.3rem;
+  border-radius: 4px;
+  color: var(--primary);
+}
+
+.confirm-pairing-btn {
+  font-size: 0.9rem;
+  padding: 0.6rem;
+}
+
+.alert-banner {
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+.alert-success { background: rgba(0, 200, 100, 0.2); border: 1px solid var(--success); color: white; }
+.alert-danger { background: rgba(255, 50, 50, 0.2); border: 1px solid var(--danger); color: white; }

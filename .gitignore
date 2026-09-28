@@ -13,3 +13,6 @@ instance/
 # Python cache
 __pycache__/
 *.pyc
+
+# Node 
+frontend/node_modules/.vite

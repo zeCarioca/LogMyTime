@@ -5,30 +5,17 @@ import {
   ReposCard,
   CommitPairingQueue,
   LocalGitStatus,
-  BulkLinkSection,
   ThemeCard,
   SavedPalettes,
 } from '../components';
-import { useTimer, useRepos, useCommitPoller, useGitStatus, useTheme, useBulkLink } from '../hooks';
+import { useTimer, useRepos, useGitStatus, useTheme } from '../hooks';
 import { timeApi } from '../api/time';
 
 export const Dashboard: React.FC = () => {
   const { seconds, isRunning, start, pause, reset, addMinutes, formattedTime } = useTimer();
   const { activeRepos, archivedRepos, refreshRepos, toggleArchive, refetchRepos } = useRepos();
-  const { queue, actionLoadingId, confirmPairing, rejectPairing, pollNow } = useCommitPoller();
   const { gitStatus, setLocalPath } = useGitStatus();
   const { accentHue, savedPalettes, updateHue, saveCurrentPalette, deletePalette } = useTheme();
-
-  const {
-    selectedTimelogIds,
-    selectedCommitSha,
-    isLinking,
-    error: bulkLinkError,
-    setSelectedCommitSha,
-    toggleTimelogSelection,
-    clearSelection,
-    linkSelected,
-  } = useBulkLink();
 
   const handleSaveTime = async (repoId: number, description: string, durationSec: number) => {
     await timeApi.logTime({
@@ -43,14 +30,6 @@ export const Dashboard: React.FC = () => {
   const handleManualSync = async (repoId: number) => {
     await timeApi.manualSync(repoId);
     await refetchRepos();
-  };
-
-  const handleBulkLink = async () => {
-    const result = await linkSelected();
-    if (result?.status === 'success') {
-      await pollNow();
-      await refetchRepos();
-    }
   };
 
   return (
@@ -84,23 +63,7 @@ export const Dashboard: React.FC = () => {
         />
 
         <LocalGitStatus status={gitStatus} onSetPath={setLocalPath} />
-        <CommitPairingQueue
-          queue={queue}
-          actionLoadingId={actionLoadingId}
-          onConfirm={confirmPairing}
-          onReject={rejectPairing}
-        />
-        <BulkLinkSection
-          queue={queue}
-          selectedTimelogIds={selectedTimelogIds}
-          selectedCommitSha={selectedCommitSha}
-          isLinking={isLinking}
-          error={bulkLinkError}
-          onSelectCommitSha={setSelectedCommitSha}
-          onToggleTimelog={toggleTimelogSelection}
-          onClear={clearSelection}
-          onLink={handleBulkLink}
-        />
+        <CommitPairingQueue onPairConfirmed={refetchRepos} />
       </div>
 
 

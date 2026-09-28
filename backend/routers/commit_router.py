@@ -1,12 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from models import get_db, User, TimeEntry, CommitLink, CommitStatus
-from schemas import CommitLinkOut, BulkLinkTimelogsRequest, BulkLinkTimelogsResponse
+from schemas import CommitLinkOut, TimeEntryOut, BulkLinkTimelogsRequest, BulkLinkTimelogsResponse
 from routers.auth_router import get_current_user
 from services import GitService, PairingService, SyncService
 
 
 router = APIRouter(tags=["Commit Pairing"])
+
+@router.get("/recent")
+async def get_recent_commits(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    commits = await PairingService.fetch_recent_commits(db, user)
+    return commits
+
+@router.get("/unassigned-time", response_model=list[TimeEntryOut])
+async def get_unassigned_time(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    entries = db.query(TimeEntry).join(TimeEntry.repository).filter(
+        TimeEntry.repository.has(user_id=user.id),
+        TimeEntry.commit_sha == None
+    ).order_by(TimeEntry.created_at.desc()).all()
+
+    for e in entries:
+        if e.repository:
+            setattr(e, 'repo_name', e.repository.full_name)
+            setattr(e, 'project', e.repository.full_name)
+    return entries
 
 @router.get("/pending", response_model=list[CommitLinkOut])
 async def list_pending_commits(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
@@ -18,6 +36,7 @@ async def list_pending_commits(user: User = Depends(get_current_user), db: Sessi
     ).order_by(CommitLink.created_at.desc()).all()
 
     return links
+
 
 @router.post("/{commit_link_id}/confirm")
 async def confirm_pairing(commit_link_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
