@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from models import GithubRepository, TimeEntry, User, get_db
 from routers.auth_router import get_current_user
-from services import GitHubService
+from services import GitHubService, SyncService
 
 router = APIRouter(tags=["Time Tracking"])
 
@@ -43,6 +43,7 @@ async def log_time(payload: TimeEntryCreate, user: User = Depends(get_current_us
     db.add(entry)
     db.commit()
     db.refresh(entry)
+    SyncService.update_local_timelogs_json(db, user)
     return entry
 
 @router.delete("/{entry_id}")
@@ -57,6 +58,7 @@ async def delete_entry(entry_id: int, user: User = Depends(get_current_user), db
 
     db.delete(entry)
     db.commit()
+    SyncService.update_local_timelogs_json(db, user)
     return {"status": "success", "message": "Time entry deleted"}
 
 @router.post("/sync-manual/{repo_id}")
@@ -91,8 +93,10 @@ async def manual_sync(repo_id: int, user: User = Depends(get_current_user), db: 
                 e.is_synced = True
                 e.synced_at = now
             db.commit()
+            SyncService.update_local_timelogs_json(db, user)
             return {"status": "success", "synced_count": len(unsynced_entries)}
         else:
             raise HTTPException(status_code=500, detail=sync_res.get('error', 'Sync failed'))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+

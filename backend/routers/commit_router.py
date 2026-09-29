@@ -130,6 +130,7 @@ async def bulk_link_timelogs(
             synchronize_session=False
         )
         db.commit()
+        SyncService.update_local_timelogs_json(db, user)
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Database update failed: {e!s}")
