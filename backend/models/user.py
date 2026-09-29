@@ -19,6 +19,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     repositories = relationship('GithubRepository', back_populates='user', cascade='all, delete-orphan')
+    analytics_goal = relationship('AnalyticsGoal', back_populates='user', uselist=False, cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.github_username}>'

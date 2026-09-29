@@ -9,6 +9,9 @@ from services.preference_service import (
     set_selected_repository,
 )
 from services.sync_service import SyncService
+from services.analytics_service import AnalyticsService
+from services.analytics_insights import AnalyticsInsights
+from services.analytics_export import AnalyticsExport
 
 __all__ = [
     'BranchCommitService',
@@ -16,6 +19,9 @@ __all__ = [
     'GitService',
     'PairingService',
     'SyncService',
+    'AnalyticsService',
+    'AnalyticsInsights',
+    'AnalyticsExport',
     'get_selected_repository',
     'load_archive_preferences',
     'save_archive_preference',

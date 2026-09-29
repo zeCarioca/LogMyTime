@@ -1,8 +1,8 @@
 import React from 'react';
 
 interface TabsNavProps {
-  activeTab: 'timer' | 'data';
-  onTabChange: (tab: 'timer' | 'data') => void;
+  activeTab: 'timer' | 'data' | 'analytics';
+  onTabChange: (tab: 'timer' | 'data' | 'analytics') => void;
 }
 
 export const TabsNav: React.FC<TabsNavProps> = ({ activeTab, onTabChange }) => {
@@ -19,6 +19,12 @@ export const TabsNav: React.FC<TabsNavProps> = ({ activeTab, onTabChange }) => {
         onClick={() => onTabChange('data')}
       >
         <span className="tab-icon">📊</span> Hierarchy Explorer
+      </button>
+      <button
+        className={`tab-button ${activeTab === 'analytics' ? 'active' : ''}`}
+        onClick={() => onTabChange('analytics')}
+      >
+        <span className="tab-icon">📈</span> Analytics Dashboard
       </button>
     </nav>
   );

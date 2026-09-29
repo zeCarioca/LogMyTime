@@ -27,6 +27,18 @@ def migrate():
         cursor.execute("ALTER TABLE users ADD COLUMN commit_poll_interval_minutes INTEGER DEFAULT 5;")
         print("Added 'commit_poll_interval_minutes' column to 'users' table.")
 
+    # Create analytics_goals if not exists
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS analytics_goals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL UNIQUE,
+        weekly_target_seconds INTEGER NOT NULL DEFAULT 0,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+    """)
+    print("Checked 'analytics_goals' table.")
+
     conn.commit()
     conn.close()
     print("Database migration check completed successfully.")

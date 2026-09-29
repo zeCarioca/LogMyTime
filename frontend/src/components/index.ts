@@ -11,3 +11,11 @@ export * from './theme/ThemeCard';
 export * from './theme/SavedPalettes';
 export * from './data/HierarchyTree';
 
+export * from './analytics/InsightsTicker';
+export * from './analytics/DatePickerGroup';
+export * from './analytics/ActivityHeatmap';
+export * from './analytics/TimeTrendsChart';
+export * from './analytics/PairingCorrelationChart';
+export * from './analytics/KPICards';
+export * from './analytics/WeeklyGoalWidget';
+

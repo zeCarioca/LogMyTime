@@ -6,11 +6,11 @@ State, architecture, conventions, rules for **LogMyTime** project.
 
 ## 📌 Project Overview & Purpose
 
-**LogMyTime**: local-first web app to track dev time + **pair time entries with GitHub commits**.
+**LogMyTime**: local-first web app track dev time + **pair time entries with GitHub commits**.
 
 Capabilities:
 - Track time vs local Git & GitHub repos via circular timer + manual controls.
-- Detect new commits (GitHub API poll every N min) + show **confirm/reject UI** to link commit to timelog.
+- Detect new commits (GitHub API poll every N min) + show **confirm/reject UI** link commit to timelog.
 - Sync confirmed pairings to GitHub on every commit (syncs linked timelog immediately).
 - Read local git state (branch, last commit, staged files) via server `git` CLI subprocess.
 - Single-user, local-first SQLite DB via SQLAlchemy ORM.
@@ -38,13 +38,13 @@ Capabilities:
 
 | Decision | Reason |
 |---|---|
-| FastAPI over Flask | `async def` + `httpx.AsyncClient` for non-blocking GitHub polling; auto OpenAPI at `/docs` |
+| FastAPI over Flask | `async def` + `httpx.AsyncClient` non-blocking GitHub polling; auto OpenAPI at `/docs` |
 | JWT (Bearer) over server sessions | Token in `localStorage`, attached via Axios interceptor in `api/client.ts` |
 | `httpx` over `requests` | Async required for `async def` route handlers |
 | Oklch CSS variables | Runtime palette swapping without JS |
 | SQLite kept | Local-first design; zero infra; existing `instance/database.db` migrated in-place |
 | No Auto-Pairing by Recent Commits | Timelogs default `commit = None`, routing sends `project` + `commit` to frontend |
-| Local Git Log DB (`instance/local-git-log-commits.db`) | Scrapes `git log` CLI to store local commit history for manual pairing panel |
+| Local Git Log DB (`instance/local-git-log-commits.db`) | Scrapes `git log` CLI store local commit history for manual pairing panel |
 | Ruff Linter Integration | Fast Python linting, import formatting, static analysis |
 | Branch Commit Storage (`branch_commits` table) | Query GitHub branches API + store branch-labeled commits in SQLite |
 
@@ -147,7 +147,7 @@ log_my_time/
 | `github_username` | String | GitHub handle |
 | `access_token` | Text | OAuth token (`repo` scope) |
 | `avatar_url` | String | Profile image URL |
-| `local_repo_path` | String (nullable) | Absolute path to local clone |
+| `local_repo_path` | String (nullable) | Absolute path local clone |
 | `commit_poll_interval_minutes` | Integer | Poll interval in min (default: 5) |
 
 ### `GithubRepository`
@@ -202,18 +202,18 @@ log_my_time/
 
 ### Commit Detection & Pairing Flow
 
-1. Auto pairing disabled in `pairing_service.py`.
-2. Timelogs default `commit = None` with explicit `project`.
-3. Routing endpoints send `project` + `commit` to frontend.
-4. On **Confirm**: `CommitLink.status` → `confirmed`, `TimeEntry.is_synced = True`, `sync_service.py` pushes to `timelogs` branch via GitHub Contents API.
+1. Auto pairing disabled `pairing_service.py`.
+2. Timelogs default `commit = None` explicit `project`.
+3. Routing endpoints send `project` + `commit` frontend.
+4. On **Confirm**: `CommitLink.status` → `confirmed`, `TimeEntry.is_synced = True`, `sync_service.py` push `timelogs` branch via GitHub Contents API.
 
 ### Local Git State
-- `git_service.py` runs `git` CLI subprocess in `local_repo_path`.
+- `git_service.py` run `git` CLI subprocess `local_repo_path`.
 - Returns branch, last commit SHA/message, staged/modified files.
-- `LocalGitStatus.tsx` renders real-time state panel.
+- `LocalGitStatus.tsx` render real-time state panel.
 
 ### GitHub Sync (on Confirm)
-1. Ensure `timelogs` branch exists on remote.
+1. Ensure `timelogs` branch exists remote.
 2. Fetch `TimeLogs/timesheet.json` from `timelogs` branch.
 3. Append `{commit_sha, task_description, duration_seconds, synced_at}` entry.
 4. Commit & push via GitHub Contents API.
@@ -237,44 +237,44 @@ log_my_time/
 
 ### 1. General Principles
 - **Preserve docstrings**: Keep existing comments unless logic changes.
-- **Prompt Clarification**: Ask clarifying questions when prompts are ambiguous before execution.
+- **Prompt Clarification**: Ask clarifying questions when prompts ambiguous before execution.
 - **Modularity**:
   - Routers handle HTTP concerns only.
-  - Business logic in `services/`.
-  - Pydantic schemas in `schemas/`.
-  - ORM models in `models/` (one model per file).
+  - Business logic `services/`.
+  - Pydantic schemas `schemas/`.
+  - ORM models `models/` (one model per file).
 
 ### 2. Backend Conventions (FastAPI + Python)
-- Typed Pydantic response models for all endpoints.
-- `async def` for route handlers and I/O services.
+- Typed Pydantic response models all endpoints.
+- `async def` route handlers and I/O services.
 - GitHub API via `github_service.py` only.
 - Local git subprocess via `git_service.py` only.
 - DB session via `Depends(get_db)`.
-- Try/except with explicit rollback on DB/GitHub writes.
+- Try/except explicit rollback on DB/GitHub writes.
 
 ### 3. Frontend Conventions (React + Vite + TypeScript)
-- **Strict TypeScript**: no `any`. Types in `types/index.ts`.
-- **Vanilla CSS** in `styles/` — no Tailwind, no CSS-in-JS.
-- API calls in `api/` modules only.
-- Stateful logic in `hooks/` — presentation-only components.
+- **Strict TypeScript**: no `any`. Types `types/index.ts`.
+- **Vanilla CSS** `styles/` — no Tailwind, no CSS-in-JS.
+- API calls `api/` modules only.
+- Stateful logic `hooks/` — presentation-only components.
 - Dark-mode glassmorphism aesthetic.
 
 ### 4. File Size & Single Responsibility
-- **Max 200 lines per file** — refactor when reaching limit.
-- Subcomponents in `components/<feature>/` when exceeding 120 lines.
+- **Max 200 lines per file** — refactor when limit reached.
+- Subcomponents `components/<feature>/` when >120 lines.
 - One router, service, model, hook per file.
 
 ### 5. Security & Environment
-- Load secrets from `.env` via `python-dotenv` / Vite `import.meta.env`.
+- Load secrets `.env` via `python-dotenv` / Vite `import.meta.env`.
 - Validate `local_repo_path` server-side before git subprocess execution.
 
 ### 6. Feature Documentation
-- Every new feature must be documented in `README.md`.
+- Document new features `README.md`.
 
 ### 7. Markdown Output Routing
-- Markdown files (except `GEMINI.md` / `README.md`) belong in `.obsidian/` subfolders. Never place in root.
+- Markdown files (except `GEMINI.md` / `README.md`) belong `.obsidian/` subfolders. Never place root.
 
 ### 8. Change Logging & Execution Plans
-- Log changes in `.obsidian/logs/<what-was-done>-YYYY-MM-DD.md`.
-- Use Obsidian links `[[path/to/file]]` when referencing code.
-- **Plan Consolidation Rule**: Consolidate multi-step plan updates into a single plan log file in `.obsidian/logs/`.
+- Log changes `.obsidian/logs/<what-was-done>-YYYY-MM-DD.md`.
+- Use Obsidian links `[[path/to/file]]` referencing code.
+- **Plan Consolidation Rule**: Consolidate multi-step plan updates single plan log file `.obsidian/logs/`.
