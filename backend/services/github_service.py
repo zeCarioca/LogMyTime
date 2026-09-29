@@ -32,6 +32,15 @@ class GitHubService:
                 raise PermissionError("GitHub token has expired or is invalid. Please sign in again.")
             return []
 
+    async def get_branches(self, repo_full_name: str, per_page: int = 100):
+        url = f'{GITHUB_API_BASE}/repos/{repo_full_name}/branches'
+        params = {'per_page': per_page}
+        async with httpx.AsyncClient() as client:
+            res = await client.get(url, headers=self.headers, params=params, timeout=10)
+            if res.status_code == 200:
+                return res.json()
+            return []
+
     async def get_branch(self, repo_full_name: str, branch: str):
         url = f'{GITHUB_API_BASE}/repos/{repo_full_name}/branches/{branch}'
         async with httpx.AsyncClient() as client:

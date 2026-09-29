@@ -1,9 +1,26 @@
 import { apiClient } from './client';
-import { CommitLink, GitStatus, BulkLinkPayload, BulkLinkResponse, RecentCommit, TimeEntry } from '../types';
+import {
+  BranchWithCommits,
+  BulkLinkPayload,
+  BulkLinkResponse,
+  CommitLink,
+  GitStatus,
+  RecentCommit,
+  TimeEntry,
+} from '../types';
 
 export const commitsApi = {
   getRecent: async (): Promise<RecentCommit[]> => {
     const response = await apiClient.get<RecentCommit[]>('/commits/recent');
+    return response.data;
+  },
+  getBranchesWithCommits: async (repoId?: number, refresh: boolean = false): Promise<BranchWithCommits[]> => {
+    const response = await apiClient.get<BranchWithCommits[]>('/commits/branches-with-commits', {
+      params: {
+        ...(repoId ? { repo_id: repoId } : {}),
+        refresh,
+      },
+    });
     return response.data;
   },
   getUnassignedTime: async (): Promise<TimeEntry[]> => {

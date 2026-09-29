@@ -291,3 +291,8 @@ Computed: `unsynced_seconds`, `unsynced_minutes`.
 
 ### 7. Markdown Output Routing
 - Any generated `.md` file that is not `GEMINI.md` or `README.md` must be placed inside `.obsidian/` (or a subfolder). Never place session logs or outputs in the repository root.
+
+### 8. Change Logging & Execution Plans
+- For every change in the project, make or edit a `.md` file in `.obsidian/logs/` containing a simple and concise explanation with filenames matching `<what-was-done>-YYYY-MM-DD.md`.
+- Always use Obsidian double bracket syntax (`[[path/to/file]]`) when referencing services, components, models, schemas, or API endpoints.
+- **Plan Consolidation Rule**: If actions are executed from a multi-step plan, do **not** create separate `.md` files for each individual step. Instead, consolidate and append progress updates into a single dedicated plan log file in `.obsidian/logs/`.

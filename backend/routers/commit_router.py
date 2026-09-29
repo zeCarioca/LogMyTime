@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from schemas import (
+    BranchWithCommitsOut,
     BulkLinkTimelogsRequest,
     BulkLinkTimelogsResponse,
     CommitLinkOut,
@@ -9,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from models import CommitLink, CommitStatus, TimeEntry, User, get_db
 from routers.auth_router import get_current_user
-from services import GitService, PairingService, SyncService
+from services import BranchCommitService, GitService, PairingService, SyncService
 
 router = APIRouter(tags=["Commit Pairing"])
 
@@ -17,6 +18,20 @@ router = APIRouter(tags=["Commit Pairing"])
 async def get_recent_commits(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     commits = await PairingService.fetch_recent_commits(db, user)
     return commits
+
+@router.get("/branches-with-commits", response_model=list[BranchWithCommitsOut])
+async def get_branches_with_commits(
+    repo_id: int | None = None,
+    refresh: bool = False,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return await BranchCommitService.get_branches_with_commits(
+        db=db,
+        user=user,
+        repo_id=repo_id,
+        refresh=refresh
+    )
 
 @router.get("/unassigned-time", response_model=list[TimeEntryOut])
 async def get_unassigned_time(user: User = Depends(get_current_user), db: Session = Depends(get_db)):

@@ -1,3 +1,8 @@
+from schemas.branch_commit import (
+    BranchCommitItem,
+    BranchCommitOut,
+    BranchWithCommitsOut,
+)
 from schemas.commit_link import (
     BulkLinkTimelogsRequest,
     BulkLinkTimelogsResponse,
@@ -8,6 +13,9 @@ from schemas.time_entry import TimeEntryCreate, TimeEntryOut
 from schemas.user import UserBase, UserCreate, UserOut
 
 __all__ = [
+    'BranchCommitItem',
+    'BranchCommitOut',
+    'BranchWithCommitsOut',
     'BulkLinkTimelogsRequest',
     'BulkLinkTimelogsResponse',
     'CommitLinkOut',
@@ -17,6 +25,6 @@ __all__ = [
     'TimeEntryOut',
     'UserBase',
     'UserCreate',
-    'UserOut'
+    'UserOut',
 ]
 

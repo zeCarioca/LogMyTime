@@ -87,3 +87,12 @@ export interface BulkLinkResponse {
   updated_timelog_ids: number[];
 }
 
+export interface BranchCommitItem extends RecentCommit {
+  branch: string;
+}
+
+export interface BranchWithCommits {
+  branch: string;
+  commits: BranchCommitItem[];
+}
+

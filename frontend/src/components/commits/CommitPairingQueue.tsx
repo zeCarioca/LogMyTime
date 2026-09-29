@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { RecentCommit, TimeEntry } from '../../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { BranchWithCommits, TimeEntry } from '../../types';
 import { commitsApi } from '../../api/commits';
 
 interface CommitPairingQueueProps {
@@ -7,7 +7,8 @@ interface CommitPairingQueueProps {
 }
 
 export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
-  const [recentCommits, setRecentCommits] = useState<RecentCommit[]>([]);
+  const [branchGroups, setBranchGroups] = useState<BranchWithCommits[]>([]);
+  const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [unassignedTimelogs, setUnassignedTimelogs] = useState<TimeEntry[]>([]);
   const [selectedTimelogIds, setSelectedTimelogIds] = useState<Set<number>>(new Set());
   const [selectedCommitSha, setSelectedCommitSha] = useState<string | null>(null);
@@ -19,13 +20,13 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
     setLoading(true);
     setError(null);
     try {
-      const [commitsData, timelogsData] = await Promise.all([
-        commitsApi.getRecent(),
+      const [branchesData, timelogsData] = await Promise.all([
+        commitsApi.getBranchesWithCommits(undefined, true),
         commitsApi.getUnassignedTime(),
       ]);
-      setRecentCommits(commitsData);
+      setBranchGroups(branchesData);
       setUnassignedTimelogs(timelogsData);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('Failed to fetch pairing queue data', e);
       setError('Failed to fetch data from backend');
     } finally {
@@ -36,6 +37,24 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  const displayedCommits = useMemo(() => {
+    if (selectedBranch === 'all') {
+      const seen = new Set<string>();
+      const list = [];
+      for (const bg of branchGroups) {
+        for (const c of bg.commits) {
+          if (!seen.has(c.sha)) {
+            seen.add(c.sha);
+            list.push(c);
+          }
+        }
+      }
+      return list;
+    }
+    const group = branchGroups.find((g) => g.branch === selectedBranch);
+    return group ? group.commits : [];
+  }, [branchGroups, selectedBranch]);
 
   const toggleTimelogSelection = (id: number) => {
     setSelectedTimelogIds((prev) => {
@@ -148,12 +167,34 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
           padding: '1rem',
           minHeight: '300px'
         }}>
-          <h3 style={{ fontSize: '1rem', margin: '0 0 0.75rem 0', color: 'var(--primary, #cba6f7)' }}>Recent Commits</h3>
-          {recentCommits.length === 0 ? (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <h3 style={{ fontSize: '1rem', margin: 0, color: 'var(--primary, #cba6f7)' }}>Recent Commits</h3>
+            <select
+              value={selectedBranch}
+              onChange={(e) => setSelectedBranch(e.target.value)}
+              style={{
+                background: 'var(--bg-gradient, #11111b)',
+                color: 'var(--text-color, #cdd6f4)',
+                border: '1px solid var(--card-border, #313244)',
+                borderRadius: '6px',
+                padding: '0.25rem 0.5rem',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="all">All Branches</option>
+              {branchGroups.map((g) => (
+                <option key={g.branch} value={g.branch}>
+                  {g.branch} ({g.commits.length})
+                </option>
+              ))}
+            </select>
+          </div>
+          {displayedCommits.length === 0 ? (
             <p style={{ color: 'var(--text-muted, #a6adc8)', fontSize: '0.85rem' }}>No commits available.</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto' }}>
-              {recentCommits.map((c, index) => {
+              {displayedCommits.map((c, index) => {
                 const isSelected = selectedCommitSha === c.sha;
                 return (
                   <div
@@ -173,9 +214,23 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
                       <span style={{ fontWeight: 'bold', color: isSelected ? 'var(--success, #a6e3a1)' : 'var(--primary, #cba6f7)' }}>
                         {c.message}
                       </span>
-                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted, #a6adc8)' }}>{c.date}</span>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted, #a6adc8)' }}>
+                        {c.date ? new Date(c.date).toLocaleDateString() : ''}
+                      </span>
                     </div>
-                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-color, #cdd6f4)' }}>{c.repo_name}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-color, #cdd6f4)' }}>{c.repo_name}</p>
+                      <span style={{
+                        fontSize: '0.75rem',
+                        background: 'rgba(203, 166, 247, 0.15)',
+                        color: 'var(--primary, #cba6f7)',
+                        padding: '0.1rem 0.4rem',
+                        borderRadius: '4px',
+                        border: '1px solid rgba(203, 166, 247, 0.3)'
+                      }}>
+                        🌿 {c.branch}
+                      </span>
+                    </div>
                   </div>
                 );
               })}
