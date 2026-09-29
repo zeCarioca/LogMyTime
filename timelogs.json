@@ -1,0 +1,240 @@
+{
+  "user": "zeCarioca",
+  "last_updated_at": "2026-09-29T22:37:34Z",
+  "total_logged_seconds": 57483,
+  "total_logged_minutes": 958.0,
+  "total_entries": 21,
+  "entries": [
+    {
+      "id": 21,
+      "task_description": "test",
+      "duration_seconds": 1,
+      "duration_minutes": 1,
+      "commit_sha": null,
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": false,
+      "synced_at": null,
+      "created_at": "2026-09-29T22:37:34Z"
+    },
+    {
+      "id": 20,
+      "task_description": "Fix data bugs",
+      "duration_seconds": 1800,
+      "duration_minutes": 30,
+      "commit_sha": "40cd54d579db519c7c2175c638ebef833024f322",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": false,
+      "synced_at": null,
+      "created_at": "2026-09-29T22:37:02Z"
+    },
+    {
+      "id": 19,
+      "task_description": "fiz alguma couisa",
+      "duration_seconds": 3600,
+      "duration_minutes": 60,
+      "commit_sha": "40cd54d579db519c7c2175c638ebef833024f322",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": false,
+      "synced_at": null,
+      "created_at": "2026-09-29T22:10:32Z"
+    },
+    {
+      "id": 18,
+      "task_description": "dat analytics",
+      "duration_seconds": 5400,
+      "duration_minutes": 90,
+      "commit_sha": "40cd54d579db519c7c2175c638ebef833024f322",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": false,
+      "synced_at": null,
+      "created_at": "2026-09-29T21:33:01Z"
+    },
+    {
+      "id": 17,
+      "task_description": "Timelog container refreshing",
+      "duration_seconds": 900,
+      "duration_minutes": 15,
+      "commit_sha": "7008ed719da000a3b4ba9027fd5523894257f1b1",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-29T17:11:53Z"
+    },
+    {
+      "id": 16,
+      "task_description": "add branch-aware commit",
+      "duration_seconds": 3600,
+      "duration_minutes": 60,
+      "commit_sha": "d462e4c60bc785ae331c2401318d6ac8bd42ec0e",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-29T17:06:43Z"
+    },
+    {
+      "id": 15,
+      "task_description": "Add branch selection functionality",
+      "duration_seconds": 1800,
+      "duration_minutes": 30,
+      "commit_sha": "d462e4c60bc785ae331c2401318d6ac8bd42ec0e",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-29T01:45:33Z"
+    },
+    {
+      "id": 14,
+      "task_description": "Mostrar Projeto pro ryan",
+      "duration_seconds": 102,
+      "duration_minutes": 2,
+      "commit_sha": "aa5ce6e59385215aad8e55b6512151acb0f0a4a8",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-28T20:40:12Z"
+    },
+    {
+      "id": 13,
+      "task_description": "jsjejsej",
+      "duration_seconds": 1803,
+      "duration_minutes": 30,
+      "commit_sha": "aa5ce6e59385215aad8e55b6512151acb0f0a4a8",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-28T20:15:06Z"
+    },
+    {
+      "id": 12,
+      "task_description": "Timer Verification Check",
+      "duration_seconds": 1200,
+      "duration_minutes": 20,
+      "commit_sha": "aa5ce6e59385215aad8e55b6512151acb0f0a4a8",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-28T20:10:57Z"
+    },
+    {
+      "id": 11,
+      "task_description": "Automated Timer Verification Test",
+      "duration_seconds": 900,
+      "duration_minutes": 15,
+      "commit_sha": "e3fc1ad9009e4ca7b2bad6f970568570c613e554",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-28T20:10:14Z"
+    },
+    {
+      "id": 10,
+      "task_description": "Running Manual Verification Tests",
+      "duration_seconds": 1805,
+      "duration_minutes": 30,
+      "commit_sha": "e3fc1ad9009e4ca7b2bad6f970568570c613e554",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-26T17:54:04Z"
+    },
+    {
+      "id": 9,
+      "task_description": "Running Manual Verification Tests",
+      "duration_seconds": 1408,
+      "duration_minutes": 23,
+      "commit_sha": "b0264dea891d5f4a034da7e7d5fa3dffe8dd2424",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-26T16:21:19Z"
+    },
+    {
+      "id": 8,
+      "task_description": "Refactoring the project....",
+      "duration_seconds": 14402,
+      "duration_minutes": 240,
+      "commit_sha": "b0264dea891d5f4a034da7e7d5fa3dffe8dd2424",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-26T15:40:35Z"
+    },
+    {
+      "id": 7,
+      "task_description": "aomghoawmghoawmhoawh",
+      "duration_seconds": 3600,
+      "duration_minutes": 60,
+      "commit_sha": "b0264dea891d5f4a034da7e7d5fa3dffe8dd2424",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-29T18:41:01Z",
+      "created_at": "2026-09-26T01:08:14Z"
+    },
+    {
+      "id": 6,
+      "task_description": "Different Tabs now yahoo",
+      "duration_seconds": 3600,
+      "duration_minutes": 60,
+      "commit_sha": "d2719a8dbe58946e1c48169189e77e0fe9dd7680",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-25T22:20:13Z",
+      "created_at": "2026-09-25T22:20:12Z"
+    },
+    {
+      "id": 5,
+      "task_description": "Oklch Palette Features",
+      "duration_seconds": 2700,
+      "duration_minutes": 45,
+      "commit_sha": "d2719a8dbe58946e1c48169189e77e0fe9dd7680",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-25T20:59:53Z",
+      "created_at": "2026-09-25T20:59:43Z"
+    },
+    {
+      "id": 4,
+      "task_description": "Better Stylistic features",
+      "duration_seconds": 2700,
+      "duration_minutes": 45,
+      "commit_sha": "b70af4bd5df5ba354238242dd7e4d0fdbe1f2008",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-25T18:58:56Z",
+      "created_at": "2026-09-25T18:58:47Z"
+    },
+    {
+      "id": 3,
+      "task_description": "Better and cleaner code, ans vibes",
+      "duration_seconds": 498,
+      "duration_minutes": 8,
+      "commit_sha": "b70af4bd5df5ba354238242dd7e4d0fdbe1f2008",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-25T17:55:52Z",
+      "created_at": "2026-09-25T17:50:40Z"
+    },
+    {
+      "id": 2,
+      "task_description": "Fix growing circle, change from minutes to hours so it looks cooler",
+      "duration_seconds": 264,
+      "duration_minutes": 4,
+      "commit_sha": "46e02500d8cb4be96859968d34df025f2b5b0947",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-25T17:55:52Z",
+      "created_at": "2026-09-25T17:17:35Z"
+    },
+    {
+      "id": 1,
+      "task_description": "Build Core Functionality and vibes",
+      "duration_seconds": 5400,
+      "duration_minutes": 90,
+      "commit_sha": "46e02500d8cb4be96859968d34df025f2b5b0947",
+      "repo_name": "zeCarioca/LogMyTime",
+      "is_synced": true,
+      "synced_at": "2026-09-25T17:05:50Z",
+      "created_at": "2026-09-25T17:05:49Z"
+    }
+  ]
+}

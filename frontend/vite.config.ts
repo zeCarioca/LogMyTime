@@ -11,6 +11,7 @@ export default defineConfig({
       '/time': 'http://localhost:8000',
       '/commits': 'http://localhost:8000',
       '/data': 'http://localhost:8000',
+      '/analytics': 'http://localhost:8000',
     }
   }
 });

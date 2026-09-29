@@ -129,7 +129,7 @@ class AnalyticsService:
     
     @staticmethod
     def get_per_commit_breakdown(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> list[CommitCorrelationItem]:
-        query = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id).filter(TimeEntry.commit_sha != None)
+        query = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id).filter(TimeEntry.commit_sha.isnot(None))
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
         if date_end:
@@ -183,7 +183,7 @@ class AnalyticsService:
             max_session_seconds=durations[-1],
             min_session_seconds=durations[0],
             total_sessions=total,
-            longest_session=f"{longest.task_description} ({longest.created_at.date().isoformat()})"
+            longest_session={"task": longest.task_description, "date": longest.created_at.date().isoformat()}
         )
     
     @staticmethod

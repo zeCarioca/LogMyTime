@@ -8,25 +8,19 @@ interface PairingCorrelationChartProps {
 }
 
 export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = ({ data, isLoading }) => {
+  const safeData = Array.isArray(data) ? data : [];
+  const sorted = [...safeData].sort((a, b) => (b.total_seconds_logged || 0) - (a.total_seconds_logged || 0)).slice(0, 10);
+
   const series = useMemo(() => {
-    const safeData = Array.isArray(data) ? data : [];
-    // Sort by most time logged and take top 10
-    const sorted = [...safeData].sort((a, b) => (b.total_seconds_logged || 0) - (a.total_seconds_logged || 0)).slice(0, 10);
-    
     return [{
       name: 'Hours Logged',
-      data: sorted.map(d => ({
-        x: d.commit_sha ? d.commit_sha.substring(0, 7) : 'Unpaired',
-        y: Number((d.total_seconds_logged / 3600).toFixed(2)),
-        // We'll store message in goals/extra for the tooltip
-        goals: [{
-          name: d.commit_message || 'No commit message',
-          value: 0, // Dmmy value
-          strokeWidth: 0
-        }]
-      }))
+      data: sorted.map(d => Number((d.total_seconds_logged / 3600).toFixed(2)))
     }];
-  }, [data]);
+  }, [sorted]);
+
+  const categories = useMemo(() => {
+    return sorted.map(d => d.commit_sha ? d.commit_sha.substring(0, 7) : 'Unpaired');
+  }, [sorted]);
 
   const options: ApexCharts.ApexOptions = {
     chart: {
@@ -48,14 +42,14 @@ export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = (
       enabled: true,
       textAnchor: 'start',
       style: { colors: ['#fff'], fontSize: '12px' },
-      formatter: function (_val: any, opt?: any) {
-        if (!opt) return "";
-        return opt.w.globals.series[opt.seriesIndex][opt.dataPointIndex] + "h";
+      formatter: function (val: any) {
+        return val + "h";
       },
       offsetX: 0,
     },
     stroke: { show: true, width: 1, colors: ['transparent'] },
     xaxis: {
+      categories: categories,
       labels: { style: { colors: 'var(--text-muted)' } },
       axisBorder: { show: false },
       axisTicks: { show: false },
@@ -72,14 +66,15 @@ export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = (
       theme: 'dark',
       y: { formatter: (val) => `${val} hours` },
       custom: function({ seriesIndex, dataPointIndex, w }: any) {
-        const data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
+        const item = sorted[dataPointIndex];
+        const val = w.globals.series[seriesIndex][dataPointIndex];
         return `
           <div style="padding: 10px; background: var(--card-bg); border: 1px solid var(--card-border);">
-            <div style="font-weight: bold; margin-bottom: 5px;">${data.x}</div>
+            <div style="font-weight: bold; margin-bottom: 5px;">${item?.commit_sha ? item.commit_sha.substring(0, 7) : 'Unpaired'}</div>
             <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 5px; max-width: 200px; white-space: normal;">
-              ${data.goals[0].name}
+              ${item?.commit_message || 'No commit message'}
             </div>
-            <div><span style="color: #10b981;">●</span> ${data.y} hours</div>
+            <div><span style="color: #10b981;">●</span> ${val} hours</div>
           </div>
         `;
       }
