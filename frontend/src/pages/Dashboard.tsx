@@ -16,6 +16,7 @@ export const Dashboard: React.FC = () => {
   const { activeRepos, archivedRepos, refreshRepos, toggleArchive, refetchRepos } = useRepos();
   const { gitStatus, setLocalPath } = useGitStatus();
   const { accentHue, savedPalettes, updateHue, saveCurrentPalette, deletePalette } = useTheme();
+  const [refreshPairingTrigger, setRefreshPairingTrigger] = React.useState<number>(0);
 
   const handleSaveTime = async (repoId: number, description: string, durationSec: number) => {
     await timeApi.logTime({
@@ -25,6 +26,7 @@ export const Dashboard: React.FC = () => {
     });
     reset();
     await refetchRepos();
+    setRefreshPairingTrigger((prev) => prev + 1);
   };
 
   const handleManualSync = async (repoId: number) => {
@@ -63,7 +65,7 @@ export const Dashboard: React.FC = () => {
         />
 
         <LocalGitStatus status={gitStatus} onSetPath={setLocalPath} />
-        <CommitPairingQueue onPairConfirmed={refetchRepos} />
+        <CommitPairingQueue onPairConfirmed={refetchRepos} refreshTrigger={refreshPairingTrigger} />
       </div>
 
 

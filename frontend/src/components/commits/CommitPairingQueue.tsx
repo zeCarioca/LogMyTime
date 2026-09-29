@@ -4,9 +4,10 @@ import { commitsApi } from '../../api/commits';
 
 interface CommitPairingQueueProps {
   onPairConfirmed?: () => void;
+  refreshTrigger?: number;
 }
 
-export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
+export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ refreshTrigger }) => {
   const [branchGroups, setBranchGroups] = useState<BranchWithCommits[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [unassignedTimelogs, setUnassignedTimelogs] = useState<TimeEntry[]>([]);
@@ -36,12 +37,12 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [refreshTrigger]);
 
   const displayedCommits = useMemo(() => {
+    let list = [];
     if (selectedBranch === 'all') {
       const seen = new Set<string>();
-      const list = [];
       for (const bg of branchGroups) {
         for (const c of bg.commits) {
           if (!seen.has(c.sha)) {
@@ -50,10 +51,16 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = () => {
           }
         }
       }
-      return list;
+    } else {
+      const group = branchGroups.find((g) => g.branch === selectedBranch);
+      list = group ? [...group.commits] : [];
     }
-    const group = branchGroups.find((g) => g.branch === selectedBranch);
-    return group ? group.commits : [];
+
+    return list.sort((a, b) => {
+      const dateA = a.date ? new Date(a.date).getTime() : 0;
+      const dateB = b.date ? new Date(b.date).getTime() : 0;
+      return dateB - dateA;
+    });
   }, [branchGroups, selectedBranch]);
 
   const toggleTimelogSelection = (id: number) => {
