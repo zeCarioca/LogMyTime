@@ -6,6 +6,8 @@ from models import User
 from models.analytics_goal import AnalyticsGoal
 from models.time_entry import TimeEntry
 from models.repository import GithubRepository
+from models.commit_link import CommitLink
+from models.branch_commit import BranchCommit
 from schemas.analytics import (
     DailyBreakdownItem,
     WeeklySummaryItem,
@@ -136,13 +138,32 @@ class AnalyticsService:
             query = query.filter(func.date(TimeEntry.created_at) <= date_end)
             
         entries = query.all()
+
+        # Build message lookup map from CommitLink and BranchCommit
+        commit_shas = [e.commit_sha for e in entries if e.commit_sha]
+        message_map = {}
+        if commit_shas:
+            # 1. Check CommitLink
+            links = db.query(CommitLink).filter(CommitLink.commit_sha.in_(commit_shas)).all()
+            for l in links:
+                if l.commit_message:
+                    message_map[l.commit_sha] = l.commit_message
+
+            # 2. Check BranchCommit for any missing messages
+            missing_shas = [sha for sha in commit_shas if sha not in message_map]
+            if missing_shas:
+                b_commits = db.query(BranchCommit).filter(BranchCommit.commit_sha.in_(missing_shas)).all()
+                for bc in b_commits:
+                    if bc.message:
+                        message_map[bc.commit_sha] = bc.message
+
         commits = defaultdict(lambda: {"seconds": 0, "count": 0, "msg": "", "repo": "", "date": ""})
         for e in entries:
             c = commits[e.commit_sha]
             c["seconds"] += e.total_seconds
             c["count"] += 1
             if not c["msg"]:
-                c["msg"] = e.commit_message or "No message"
+                c["msg"] = e.commit_message or message_map.get(e.commit_sha) or "No message"
                 c["repo"] = e.repository.full_name
                 c["date"] = e.created_at.isoformat()
                 
