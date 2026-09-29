@@ -1,19 +1,19 @@
 # LogMyTime — Context, Architecture & Development Rules
 
-This document outlines the current state, architecture, conventions, and rules for the **LogMyTime** project.
+State, architecture, conventions, rules for **LogMyTime** project.
 
 ---
 
 ## 📌 Project Overview & Purpose
 
-**LogMyTime** is a local-first web application that enables developers to track development time and **automatically pair time entries with GitHub commits**.
+**LogMyTime**: local-first web app to track dev time + **pair time entries with GitHub commits**.
 
-Core capabilities:
-- Track time against local Git repositories and GitHub repos via a visual circular timer and manual duration controls.
-- Automatically detect new commits (via GitHub API polling every N minutes) and surface a **confirm/reject UI** so the user explicitly links a commit to a timelog.
-- Sync confirmed pairings to GitHub on every detected commit (no 60-minute threshold — every commit triggers a sync of its linked timelog).
-- Read local git state (current branch, last commit, staged files) via server-side `git` CLI subprocess.
-- Maintain a single-user, local-first SQLite database with SQLAlchemy ORM.
+Capabilities:
+- Track time vs local Git & GitHub repos via circular timer + manual controls.
+- Detect new commits (GitHub API poll every N min) + show **confirm/reject UI** to link commit to timelog.
+- Sync confirmed pairings to GitHub on every commit (syncs linked timelog immediately).
+- Read local git state (branch, last commit, staged files) via server `git` CLI subprocess.
+- Single-user, local-first SQLite DB via SQLAlchemy ORM.
 
 ---
 
@@ -24,28 +24,29 @@ Core capabilities:
 | v2 migration (Flask → FastAPI + React/Vite/TS) | ✅ Complete |
 | `backend/` scaffold (models, routers, schemas, services) | ✅ Built & live on port 8000 |
 | `frontend/` scaffold (hooks, api/, components, pages, styles) | ✅ Built; Vite dev on port 5173 |
-| `instance/database.db` schema migration (CommitLink + new User cols) | ✅ Applied non-destructively |
-| Backend endpoints verified live (`/auth/me`, `/repos/`, `/commits/git-status`) | ✅ Verified |
-| End-to-end OAuth → Timer → CommitPairing → Sync flow | ✅ Verified & Functional |
+| `instance/database.db` schema migration (CommitLink + new User cols + BranchCommit) | ✅ Applied |
+| Backend endpoints verified live (`/auth/me`, `/repos/`, `/commits/branches-with-commits`) | ✅ Verified |
+| End-to-end OAuth → Timer → CommitPairing → Sync flow | ✅ Verified |
 | Frontend Repository Unarchiving & Theme Persistence | ✅ Built & Verified |
 | `instance/local-git-log-commits.db` local git log database | ✅ Created & Populated |
 | Frontend `pairing-panel right-panel` local commit integration | ✅ Integrated & Verified |
 | Codebase Linting (Ruff for Python & `tsc --noEmit` for TypeScript) | ✅ Cleaned & Verified |
-| Legacy Flask root files (`app.py`, `models.py`, `routes/`, `services/`, `src/`) | ⚠️ Still present — safe to delete after final review |
+| Legacy Flask root files (`app.py`, `models.py`, `routes/`, `services/`, `src/`) | ⚠️ Safe to delete after review |
 
 
-### Key Decisions Made
+### Key Decisions
 
 | Decision | Reason |
 |---|---|
-| FastAPI over Flask | `async def` + `httpx.AsyncClient` for non-blocking GitHub polling; auto OpenAPI docs at `/docs` |
-| JWT (Bearer) over server sessions | SPA can't share server-side session cookies; token stored in `localStorage`, attached via Axios interceptor in `api/client.ts` |
-| `httpx` over `requests` | Fully async; required for `async def` route handlers |
-| Oklch CSS variables | Perceptually uniform; enables runtime palette swapping without JS |
-| SQLite kept (not Postgres) | Local-first by design; zero infra; existing `instance/database.db` migrated in-place |
-| No Auto-Pairing by Recent Commits | Timelogs default to `commit = None` and retain explicit project info; routing sends `project` and `commit` datapoints to frontend |
-| Local Git Log Database (`instance/local-git-log-commits.db`) | Scrapes `git log` CLI output to store local commit history and populates the manual pairing right panel in real time |
-| Ruff Linter Integration | Enforces fast Python linting, import formatting, and static analysis across backend and root modules |
+| FastAPI over Flask | `async def` + `httpx.AsyncClient` for non-blocking GitHub polling; auto OpenAPI at `/docs` |
+| JWT (Bearer) over server sessions | Token in `localStorage`, attached via Axios interceptor in `api/client.ts` |
+| `httpx` over `requests` | Async required for `async def` route handlers |
+| Oklch CSS variables | Runtime palette swapping without JS |
+| SQLite kept | Local-first design; zero infra; existing `instance/database.db` migrated in-place |
+| No Auto-Pairing by Recent Commits | Timelogs default `commit = None`, routing sends `project` + `commit` to frontend |
+| Local Git Log DB (`instance/local-git-log-commits.db`) | Scrapes `git log` CLI to store local commit history for manual pairing panel |
+| Ruff Linter Integration | Fast Python linting, import formatting, static analysis |
+| Branch Commit Storage (`branch_commits` table) | Query GitHub branches API + store branch-labeled commits in SQLite |
 
 ---
 
@@ -60,34 +61,37 @@ log_my_time/
 ├── .gitignore
 ├── backend/                      # FastAPI Python REST API
 │   ├── app.py                    # FastAPI factory & server entry point
-│   ├── requirements.txt          # Python deps (fastapi, uvicorn, sqlalchemy, python-dotenv, requests)
+│   ├── requirements.txt          # Python deps
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── database.py           # SQLAlchemy engine, session, Base
 │   │   ├── user.py               # User ORM model
 │   │   ├── repository.py         # GithubRepository ORM model
 │   │   ├── time_entry.py         # TimeEntry ORM model
-│   │   └── commit_link.py        # CommitLink ORM model (timelog ↔ commit pairing)
+│   │   ├── commit_link.py        # CommitLink ORM model
+│   │   └── branch_commit.py      # BranchCommit ORM model
 │   ├── routers/
 │   │   ├── __init__.py
-│   │   ├── auth_router.py        # GitHub OAuth (/auth/login, /auth/callback, /auth/logout)
-│   │   ├── repo_router.py        # Repository sync, refresh, archive toggle
-│   │   ├── time_router.py        # Time logging, deletion, summary
-│   │   ├── commit_router.py      # Commit polling, pairing confirm/reject, local git state
-│   │   └── data_router.py        # Hierarchy explorer, CSV export, preferences
+│   │   ├── auth_router.py        # GitHub OAuth
+│   │   ├── repo_router.py        # Repo sync & archive
+│   │   ├── time_router.py        # Time logging & summary
+│   │   ├── commit_router.py      # Commit polling, pairing, branch-commits endpoint
+│   │   └── data_router.py        # Data explorer & CSV export
 │   ├── services/
 │   │   ├── __init__.py
-│   │   ├── github_service.py     # GitHub REST API client (OAuth, user, repos, commits, Contents API)
-│   │   ├── git_service.py        # Local git CLI subprocess: branch, status, log, COMMIT_EDITMSG
-│   │   ├── sync_service.py       # Commit-triggered sync: push timesheet.json to timelogs branch
-│   │   ├── pairing_service.py    # Commit ↔ timelog auto-match logic & pending queue management
-│   │   └── preference_service.py # File-based persistence for archive & selected-repo preferences
+│   │   ├── github_service.py     # GitHub REST API client
+│   │   ├── git_service.py        # Local git CLI subprocess
+│   │   ├── sync_service.py       # Commit sync to timelogs branch
+│   │   ├── pairing_service.py    # Commit ↔ timelog pairing logic
+│   │   ├── branch_commit_service.py # Fetch & store branch commits
+│   │   └── preference_service.py # Preference storage
 │   ├── schemas/
 │   │   ├── __init__.py
-│   │   ├── user.py               # Pydantic request/response schemas for User
+│   │   ├── user.py               # Pydantic schemas for User
 │   │   ├── repository.py         # Pydantic schemas for GithubRepository
 │   │   ├── time_entry.py         # Pydantic schemas for TimeEntry
-│   │   └── commit_link.py        # Pydantic schemas for CommitLink pairing
+│   │   ├── commit_link.py        # Pydantic schemas for CommitLink
+│   │   └── branch_commit.py      # Pydantic schemas for BranchCommit
 │   └── migrations/
 │       └── migrate_db.py         # Schema sync / migration script
 └── frontend/                     # React + Vite + TypeScript SPA
@@ -99,56 +103,36 @@ log_my_time/
         ├── main.tsx              # App entry point
         ├── App.tsx               # Root router & layout
         ├── types/
-        │   └── index.ts          # Shared TypeScript interfaces (TimeEntry, Commit, Repo, etc.)
+        │   └── index.ts          # Shared TypeScript interfaces
         ├── api/
-        │   ├── client.ts         # Axios/fetch base client (base URL, interceptors, auth header)
-        │   ├── auth.ts           # Auth API calls (/auth/*)
-        │   ├── repos.ts          # Repo API calls (/repos/*)
-        │   ├── time.ts           # Time entry API calls (/time/*)
-        │   ├── commits.ts        # Commit pairing API calls (/commits/*)
-        │   └── data.ts           # Data hierarchy & export API calls (/data/*)
+        │   ├── client.ts         # Axios client
+        │   ├── auth.ts           # Auth API calls
+        │   ├── repos.ts          # Repo API calls
+        │   ├── time.ts           # Time entry API calls
+        │   ├── commits.ts        # Commit API calls
+        │   └── data.ts           # Data & export API calls
         ├── hooks/
-        │   ├── useAuth.ts        # Auth state, login/logout
-        │   ├── useRepos.ts       # Repository list & archive state
-        │   ├── useTimer.ts       # Circular timer engine (running, paused, elapsed)
-        │   ├── useCommitPoller.ts# Polls /commits/pending on interval, surfaces confirm/reject queue
-        │   └── useTheme.ts       # Oklch palette state, localStorage persistence
+        │   ├── useAuth.ts        # Auth state
+        │   ├── useRepos.ts       # Repo list & archive state
+        │   ├── useTimer.ts       # Circular timer engine
+        │   ├── useCommitPoller.ts# Commit poller hook
+        │   └── useTheme.ts       # Theme palette state
         ├── components/
         │   ├── layout/
-        │   │   ├── Header.tsx
-        │   │   └── TabsNav.tsx
         │   ├── timer/
-        │   │   ├── TimerDial.tsx         # Circular SVG timer dial
-        │   │   ├── LoggingCard.tsx       # Repo selector, task description, duration steppers
-        │   │   └── ResetModal.tsx
         │   ├── repos/
-        │   │   ├── ReposCard.tsx         # Active repos, progress bars, Sync Now
-        │   │   └── ArchiveSection.tsx
         │   ├── commits/
-        │   │   ├── CommitPairingQueue.tsx # Pending commit ↔ timelog match cards (confirm/reject)
-        │   │   ├── CommitCard.tsx         # Single commit candidate with matched timelog preview
-        │   │   └── LocalGitStatus.tsx     # Current branch, staged files, last commit
+        │   │   ├── CommitPairingQueue.tsx # Manual pairing with branch filter
+        │   │   ├── CommitCard.tsx
+        │   │   └── LocalGitStatus.tsx
         │   ├── data/
-        │   │   ├── DataTab.tsx
-        │   │   ├── HierarchyTree.tsx      # Repo → User → Commits → Time → Date explorer
-        │   │   └── DataRepoSelector.tsx
         │   ├── activity/
-        │   │   └── ActivityTable.tsx      # Recent time entries, sync status badges, delete
         │   ├── theme/
-        │   │   ├── ThemeCard.tsx          # Oklch palette customizer
-        │   │   └── SavedPalettes.tsx
         │   └── shared/
-        │       ├── FlashMessages.tsx
-        │       └── HeroCard.tsx           # Unauthenticated welcome state
         ├── pages/
-        │   ├── Dashboard.tsx             # Main dashboard: Timer + Repos + LocalGit + CommitQueue
-        │   └── DataPage.tsx              # Data analytics tab page
+        │   ├── Dashboard.tsx
+        │   └── DataPage.tsx
         └── styles/
-            ├── index.css                 # Global tokens, dark theme, CSS variables
-            ├── timer.css                 # Circular SVG dial & controls
-            ├── commits.css               # Commit pairing queue & cards
-            ├── data-dashboard.css        # KPI cards & hierarchy tree
-            └── theme.css                 # Oklch theme panel & saved palettes
 ```
 
 ---
@@ -159,12 +143,12 @@ log_my_time/
 | Field | Type | Description |
 |---|---|---|
 | `id` | Integer PK | |
-| `github_user_id` | String | GitHub unique user ID |
+| `github_user_id` | String | GitHub user ID |
 | `github_username` | String | GitHub handle |
 | `access_token` | Text | OAuth token (`repo` scope) |
 | `avatar_url` | String | Profile image URL |
-| `local_repo_path` | String (nullable) | Absolute path to the local clone of the active project |
-| `commit_poll_interval_minutes` | Integer | How often to poll GitHub for new commits (default: 5) |
+| `local_repo_path` | String (nullable) | Absolute path to local clone |
+| `commit_poll_interval_minutes` | Integer | Poll interval in min (default: 5) |
 
 ### `GithubRepository`
 | Field | Type | Description |
@@ -174,8 +158,6 @@ log_my_time/
 | `full_name` | String | `owner/repo-name` |
 | `default_branch` | String | e.g. `main` |
 | `is_active` | Boolean | Active vs archived |
-
-Computed: `unsynced_seconds`, `unsynced_minutes`.
 
 ### `TimeEntry`
 | Field | Type | Description |
@@ -189,17 +171,30 @@ Computed: `unsynced_seconds`, `unsynced_minutes`.
 | `synced_at` | DateTime (nullable) | |
 | `created_at` | DateTime | |
 
-### `CommitLink` *(new)*
+### `CommitLink`
 | Field | Type | Description |
 |---|---|---|
 | `id` | Integer PK | |
 | `time_entry_id` | FK → TimeEntry | |
 | `repo_id` | FK → GithubRepository | |
-| `commit_sha` | String | Full SHA of the linked commit |
+| `commit_sha` | String | Full SHA of commit |
 | `commit_message` | String | First line of commit message |
 | `commit_date` | DateTime | Commit author date |
-| `status` | Enum: `pending` / `confirmed` / `rejected` | User-confirmed pairing |
-| `created_at` | DateTime | When the pair was detected |
+| `status` | Enum: `pending` / `confirmed` / `rejected` | Pairing status |
+| `created_at` | DateTime | When detected |
+
+### `BranchCommit`
+| Field | Type | Description |
+|---|---|---|
+| `id` | Integer PK | |
+| `repo_id` | FK → GithubRepository | |
+| `branch_name` | String | Branch name |
+| `commit_sha` | String | Full 40-char SHA |
+| `short_sha` | String | 7-char short SHA |
+| `message` | String | Commit subject |
+| `author` | String | Commit author |
+| `commit_date` | DateTime | Author date |
+| `fetched_at` | DateTime | DB insertion timestamp |
 
 ---
 
@@ -207,92 +202,79 @@ Computed: `unsynced_seconds`, `unsynced_minutes`.
 
 ### Commit Detection & Pairing Flow
 
-1. Automatic pairing by recent commits is disabled in `pairing_service.py`.
-2. Timelogs default to `commit = None` upon creation while retaining full project information (`project`).
-3. Each timelog datapoint delivered through routing endpoints sends both `project` and `commit` fields to the frontend.
-4. On explicit **Confirm** of a commit link: `CommitLink.status` → `confirmed`, `TimeEntry.is_synced = True`, and `sync_service.py` pushes the pairing to the `timelogs` branch on GitHub via the Contents API.
+1. Auto pairing disabled in `pairing_service.py`.
+2. Timelogs default `commit = None` with explicit `project`.
+3. Routing endpoints send `project` + `commit` to frontend.
+4. On **Confirm**: `CommitLink.status` → `confirmed`, `TimeEntry.is_synced = True`, `sync_service.py` pushes to `timelogs` branch via GitHub Contents API.
 
 ### Local Git State
-- `git_service.py` runs `git` CLI subprocess commands inside the user-configured `local_repo_path`.
-- Provides: current branch, last commit SHA + message, list of staged/modified files.
-- The frontend `LocalGitStatus.tsx` component displays this as a real-time panel, refreshed alongside the commit poller.
+- `git_service.py` runs `git` CLI subprocess in `local_repo_path`.
+- Returns branch, last commit SHA/message, staged/modified files.
+- `LocalGitStatus.tsx` renders real-time state panel.
 
 ### GitHub Sync (on Confirm)
-1. Ensures `timelogs` branch exists on the remote.
-2. Fetches `TimeLogs/timesheet.json` from the `timelogs` branch (or initializes it).
-3. Appends the confirmed `{commit_sha, task_description, duration_seconds, synced_at}` entry.
-4. Commits and pushes via GitHub Contents API.
-5. Marks `TimeEntry.is_synced = True`, `synced_at = utcnow()`, `CommitLink.status = confirmed`.
+1. Ensure `timelogs` branch exists on remote.
+2. Fetch `TimeLogs/timesheet.json` from `timelogs` branch.
+3. Append `{commit_sha, task_description, duration_seconds, synced_at}` entry.
+4. Commit & push via GitHub Contents API.
+5. Set `TimeEntry.is_synced = True`, `synced_at = utcnow()`, `CommitLink.status = confirmed`.
 
 ---
 
 ## 🎨 UI & Layout
 
-- **Theme**: Rich dark mode, Oklch palette CSS variables (`--bg-gradient`, `--card-bg`, `--card-border`, `--primary`), glassmorphism, micro-animations.
+- **Theme**: Dark mode, Oklch palette CSS variables (`--bg-gradient`, `--card-bg`, `--card-border`, `--primary`), glassmorphism.
 - **Dashboard Grid**:
-  1. **Col 1** — `LoggingCard` + `TimerDial`: repo selector, task input, circular SVG timer, Pause/Resume/Stop, duration steppers (+15m, +30m, +60m).
-  2. **Col 2** — `ReposCard` + `LocalGitStatus` + `CommitPairingQueue`: tracked repos, local git panel, pending confirm/reject commit cards.
-  3. **Col 3** — `ThemeCard` + `SavedPalettes`: Oklch customizer, named palette profiles.
-- **ActivityTable**: chronological recent entries, sync status badges, delete triggers.
-- **DataPage**: hierarchy explorer, KPI cards, CSV export.
-
----
-
-## ⏭️ Next Steps
-
-- [ ] Run full e2e: GitHub OAuth → log a time entry → push a commit → confirm pairing in UI → verify `timelogs` branch updated
-- [ ] Update GitHub OAuth App callback from `http://127.0.0.1:5000/callback` → `http://127.0.0.1:8000/auth/callback`
-- [ ] Delete legacy root-level Flask files once e2e passes: `app.py`, `models.py`, `migrate_db.py`, `routes/`, `services/`, `src/`, `static/`, `templates/`
-- [ ] Confirm `backend/requirements.txt` lists `python-jose[cryptography]` for JWT (needed for `auth_router.py`)
-- [ ] Add `README.md` entry for Commit Pairing feature (rule §6)
+  1. **Col 1** — `LoggingCard` + `TimerDial`: repo select, task input, SVG timer, controls, steppers (+15m, +30m, +60m).
+  2. **Col 2** — `ReposCard` + `LocalGitStatus` + `CommitPairingQueue`: repos, git status, pairing queue with branch filter.
+  3. **Col 3** — `ThemeCard` + `SavedPalettes`: Oklch customizer + profiles.
+- **ActivityTable**: chronological entries, sync badges, delete.
+- **DataPage**: hierarchy tree, KPI cards, CSV export.
 
 ---
 
 ## 📜 Development & Engineering Rules
 
 ### 1. General Principles
-- **Preserve documentation**: Keep all existing comments and docstrings unless explicitly changing the associated logic.
-- **Prompt Enhancement & Clarification**: Ask clarifying questions when user prompts are ambiguous, underspecified, or have multiple valid implementation options, in order to enhance accuracy and alignment before proceeding.
+- **Preserve docstrings**: Keep existing comments unless logic changes.
+- **Prompt Clarification**: Ask clarifying questions when prompts are ambiguous before execution.
 - **Modularity**:
-  - Routers handle HTTP concerns only (parsing, auth checks, response shape).
-  - Business logic lives in `services/`.
-  - Pydantic schemas live in `schemas/` — never inline.
-  - ORM models live in `models/` — one model per file.
+  - Routers handle HTTP concerns only.
+  - Business logic in `services/`.
+  - Pydantic schemas in `schemas/`.
+  - ORM models in `models/` (one model per file).
 
 ### 2. Backend Conventions (FastAPI + Python)
-- All endpoints return typed Pydantic response models.
-- Use `async def` for all route handlers and I/O-bound service calls.
-- GitHub API calls go through `github_service.py` only — never directly in a router.
-- Local git subprocess calls go through `git_service.py` only.
-- DB session injected via FastAPI `Depends(get_db)` — never imported globally in routes.
-- Wrap GitHub Contents API calls + DB writes in try/except with explicit rollback.
+- Typed Pydantic response models for all endpoints.
+- `async def` for route handlers and I/O services.
+- GitHub API via `github_service.py` only.
+- Local git subprocess via `git_service.py` only.
+- DB session via `Depends(get_db)`.
+- Try/except with explicit rollback on DB/GitHub writes.
 
 ### 3. Frontend Conventions (React + Vite + TypeScript)
-- **Strict TypeScript**: no `any`. All API response shapes typed in `types/index.ts`.
+- **Strict TypeScript**: no `any`. Types in `types/index.ts`.
 - **Vanilla CSS** in `styles/` — no Tailwind, no CSS-in-JS.
-- API calls isolated in `api/` modules — no `fetch`/`axios` directly in components.
-- Stateful logic in `hooks/` — components are presentation-only where possible.
-- Micro-animations and hover effects on all interactive elements.
-- Preserve dark-mode glassmorphism aesthetic from the existing design.
+- API calls in `api/` modules only.
+- Stateful logic in `hooks/` — presentation-only components.
+- Dark-mode glassmorphism aesthetic.
 
 ### 4. File Size & Single Responsibility
-- **Maximum 200 lines per file** — refactor immediately when approaching this limit.
-- Extract subcomponents into `components/<feature>/` when a component exceeds 120 lines.
-- One router, one service, one model, one hook per file.
-- Shared TypeScript types → `types/index.ts`. Shared Python types → `schemas/`.
+- **Max 200 lines per file** — refactor when reaching limit.
+- Subcomponents in `components/<feature>/` when exceeding 120 lines.
+- One router, service, model, hook per file.
 
 ### 5. Security & Environment
-- Never hardcode GitHub client secrets, OAuth tokens, or session keys.
-- Load all credentials from `.env` via `python-dotenv` (backend) and Vite `import.meta.env` (frontend).
-- `local_repo_path` must be validated server-side (exists, is a git repo) before any subprocess call.
+- Load secrets from `.env` via `python-dotenv` / Vite `import.meta.env`.
+- Validate `local_repo_path` server-side before git subprocess execution.
 
 ### 6. Feature Documentation
-- Every new feature must have a corresponding entry in `README.md` explaining how the user can use it.
+- Every new feature must be documented in `README.md`.
 
 ### 7. Markdown Output Routing
-- Any generated `.md` file that is not `GEMINI.md` or `README.md` must be placed inside `.obsidian/` (or a subfolder). Never place session logs or outputs in the repository root.
+- Markdown files (except `GEMINI.md` / `README.md`) belong in `.obsidian/` subfolders. Never place in root.
 
 ### 8. Change Logging & Execution Plans
-- For every change in the project, make or edit a `.md` file in `.obsidian/logs/` containing a simple and concise explanation with filenames matching `<what-was-done>-YYYY-MM-DD.md`.
-- Always use Obsidian double bracket syntax (`[[path/to/file]]`) when referencing services, components, models, schemas, or API endpoints.
-- **Plan Consolidation Rule**: If actions are executed from a multi-step plan, do **not** create separate `.md` files for each individual step. Instead, consolidate and append progress updates into a single dedicated plan log file in `.obsidian/logs/`.
+- Log changes in `.obsidian/logs/<what-was-done>-YYYY-MM-DD.md`.
+- Use Obsidian links `[[path/to/file]]` when referencing code.
+- **Plan Consolidation Rule**: Consolidate multi-step plan updates into a single plan log file in `.obsidian/logs/`.
