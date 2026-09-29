@@ -1,7 +1,7 @@
 {
   "repository": "zeCarioca/LogMyTime",
-  "last_synced_at": "2026-09-25T17:55:51Z",
-  "total_logged_minutes": 12.7,
+  "last_synced_at": "2026-09-29T18:41:00Z",
+  "total_logged_minutes": 538.0,
   "entries": [
     {
       "id": 2,
@@ -18,7 +18,95 @@
       "duration_minutes": 8,
       "logged_at": "2026-09-25T17:50:40Z",
       "synced_at": "2026-09-25T17:55:51Z"
+    },
+    {
+      "id": 7,
+      "task_description": "aomghoawmghoawmhoawh",
+      "duration_seconds": 3600,
+      "duration_minutes": 60,
+      "logged_at": "2026-09-26T01:08:14Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 8,
+      "task_description": "Refactoring the project....",
+      "duration_seconds": 14402,
+      "duration_minutes": 240,
+      "logged_at": "2026-09-26T15:40:35Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 9,
+      "task_description": "Running Manual Verification Tests",
+      "duration_seconds": 1408,
+      "duration_minutes": 23,
+      "logged_at": "2026-09-26T16:21:19Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 10,
+      "task_description": "Running Manual Verification Tests",
+      "duration_seconds": 1805,
+      "duration_minutes": 30,
+      "logged_at": "2026-09-26T17:54:04Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 11,
+      "task_description": "Automated Timer Verification Test",
+      "duration_seconds": 900,
+      "duration_minutes": 15,
+      "logged_at": "2026-09-28T20:10:14Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 12,
+      "task_description": "Timer Verification Check",
+      "duration_seconds": 1200,
+      "duration_minutes": 20,
+      "logged_at": "2026-09-28T20:10:57Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 13,
+      "task_description": "jsjejsej",
+      "duration_seconds": 1803,
+      "duration_minutes": 30,
+      "logged_at": "2026-09-28T20:15:06Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 14,
+      "task_description": "Mostrar Projeto pro ryan",
+      "duration_seconds": 102,
+      "duration_minutes": 2,
+      "logged_at": "2026-09-28T20:40:12Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 15,
+      "task_description": "Add branch selection functionality",
+      "duration_seconds": 1800,
+      "duration_minutes": 30,
+      "logged_at": "2026-09-29T01:45:33Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 16,
+      "task_description": "add branch-aware commit",
+      "duration_seconds": 3600,
+      "duration_minutes": 60,
+      "logged_at": "2026-09-29T17:06:43Z",
+      "synced_at": "2026-09-29T18:41:00Z"
+    },
+    {
+      "id": 17,
+      "task_description": "Timelog container refreshing",
+      "duration_seconds": 900,
+      "duration_minutes": 15,
+      "logged_at": "2026-09-29T17:11:53Z",
+      "synced_at": "2026-09-29T18:41:00Z"
     }
   ],
-  "total_logged_seconds": 762
+  "total_logged_seconds": 32282
 }
