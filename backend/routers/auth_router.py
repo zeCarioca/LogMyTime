@@ -29,9 +29,17 @@ async def get_current_user(authorization: str = Header(None), db: Session = Depe
     if not authorization or not authorization.startswith("Bearer "):
         # Fallback to default user for development/demo
         first_user = db.query(User).first()
-        if first_user:
-            return first_user
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
+        if not first_user:
+            first_user = User(
+                github_user_id="dev-local-user",
+                github_username="DevUser",
+                access_token="",
+                avatar_url="https://github.com/ghost.png"
+            )
+            db.add(first_user)
+            db.commit()
+            db.refresh(first_user)
+        return first_user
 
     token = authorization.split(" ")[1]
     try:

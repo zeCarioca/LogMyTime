@@ -13,7 +13,7 @@ class AnalyticsGoalOut(AnalyticsGoalBase):
     updated_at: datetime
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class DailyBreakdownItem(BaseModel):
     date: str
