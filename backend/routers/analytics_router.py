@@ -12,7 +12,7 @@ from schemas.analytics import (
     MonthlySummaryItem,
     CommitCorrelationItem,
     SessionStatsOut,
-    HeatmapCell,
+    HeatmapResponse,
     KeywordFrequencyItem,
     PairingCoverageOut,
     InsightsOut,
@@ -66,14 +66,15 @@ async def get_sessions(
 ):
     return AnalyticsService.get_session_stats(db, user, date_start, date_end)
 
-@router.get("/heatmap", response_model=list[HeatmapCell])
+@router.get("/heatmap", response_model=HeatmapResponse)
 async def get_heatmap(
+    level: str = Query(..., description="Zoom level: 'month', 'day', or 'commit'"),
     date_start: datetime.date | None = Query(None),
     date_end: datetime.date | None = Query(None),
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return AnalyticsService.get_heatmap(db, user, date_start, date_end)
+    return AnalyticsService.get_heatmap(db, user, level, date_start, date_end)
 
 @router.get("/keywords", response_model=list[KeywordFrequencyItem])
 async def get_keywords(

@@ -57,11 +57,19 @@ class SessionStatsOut(BaseModel):
     total_sessions: int
     longest_session: dict | None
 
-class HeatmapCell(BaseModel):
-    weekday: int
-    hour: int
-    total_seconds: int
-    entry_count: int
+class HeatmapDataPoint(BaseModel):
+    timestamp: str  # ISO-8601 string representing the bucket start (Month/Day/Commit)
+    total_duration_seconds: int
+    commit_count: int
+    commits: list[dict] | None = None # Populated only at the 'day' zoom level
+    projects: list[str] | None = None # Populated at 'day' level
+
+class HeatmapResponse(BaseModel):
+    level: str  # "year", "month", "week", "day"
+    start_date: str | None
+    end_date: str | None
+    max_duration_seconds: int # Included for frontend color normalization
+    data: list[HeatmapDataPoint]
 
 class KeywordFrequencyItem(BaseModel):
     keyword: str

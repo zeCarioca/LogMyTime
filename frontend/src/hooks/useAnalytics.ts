@@ -6,7 +6,7 @@ import {
   MonthlySummaryItem,
   CommitCorrelationItem,
   SessionStatsOut,
-  HeatmapCell,
+  HeatmapResponse,
   KeywordFrequencyItem,
   PairingCoverageOut,
   InsightsOut,
@@ -19,7 +19,7 @@ export interface AnalyticsData {
   monthly: MonthlySummaryItem[];
   perCommit: CommitCorrelationItem[];
   sessions: SessionStatsOut | null;
-  heatmap: HeatmapCell[];
+  heatmap: HeatmapResponse | null;
   keywords: KeywordFrequencyItem[];
   pairing: PairingCoverageOut | null;
   insights: InsightsOut | null;
@@ -37,7 +37,7 @@ export const useAnalytics = () => {
     monthly: [],
     perCommit: [],
     sessions: null,
-    heatmap: [],
+    heatmap: null,
     keywords: [],
     pairing: null,
     insights: null,
@@ -57,7 +57,7 @@ export const useAnalytics = () => {
         analyticsApi.getMonthly(start, end),
         analyticsApi.getPerCommit(start, end),
         analyticsApi.getSessions(start, end),
-        analyticsApi.getHeatmap(start, end),
+        analyticsApi.getHeatmap("day", start, end),
         analyticsApi.getKeywords(start, end),
         analyticsApi.getPairing(start, end),
         analyticsApi.getInsights(start, end),

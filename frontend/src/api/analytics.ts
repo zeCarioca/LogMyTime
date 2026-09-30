@@ -5,7 +5,7 @@ import {
   MonthlySummaryItem,
   CommitCorrelationItem,
   SessionStatsOut,
-  HeatmapCell,
+  HeatmapResponse,
   KeywordFrequencyItem,
   PairingCoverageOut,
   InsightsOut,
@@ -28,8 +28,8 @@ export const analyticsApi = {
   getSessions: (start?: string, end?: string): Promise<SessionStatsOut> => 
     apiClient.get('/analytics/sessions', { params: { date_start: start, date_end: end } }).then(r => r.data),
     
-  getHeatmap: (start?: string, end?: string): Promise<HeatmapCell[]> => 
-    apiClient.get('/analytics/heatmap', { params: { date_start: start, date_end: end } }).then(r => r.data),
+  getHeatmap: (level: string, start?: string, end?: string): Promise<HeatmapResponse> => 
+    apiClient.get('/analytics/heatmap', { params: { level, date_start: start, date_end: end } }).then(r => r.data),
     
   getKeywords: (start?: string, end?: string): Promise<KeywordFrequencyItem[]> => 
     apiClient.get('/analytics/keywords', { params: { date_start: start, date_end: end } }).then(r => r.data),

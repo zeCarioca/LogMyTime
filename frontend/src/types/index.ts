@@ -151,11 +151,19 @@ export interface SessionStatsOut {
   longest_session: Record<string, any> | null;
 }
 
-export interface HeatmapCell {
-  weekday: number;
-  hour: number;
-  total_seconds: number;
-  entry_count: number;
+export interface HeatmapDataPoint {
+  timestamp: string;
+  total_duration_seconds: number;
+  commit_count: number;
+  commits?: Array<{ sha: string; message: string }> | null;
+}
+
+export interface HeatmapResponse {
+  level: string;
+  start_date: string | null;
+  end_date: string | null;
+  max_duration_seconds: number;
+  data: HeatmapDataPoint[];
 }
 
 export interface KeywordFrequencyItem {

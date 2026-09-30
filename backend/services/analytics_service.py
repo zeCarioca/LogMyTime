@@ -14,7 +14,8 @@ from schemas.analytics import (
     MonthlySummaryItem,
     CommitCorrelationItem,
     SessionStatsOut,
-    HeatmapCell,
+    HeatmapDataPoint,
+    HeatmapResponse,
     KeywordFrequencyItem,
     PairingCoverageOut
 )
@@ -208,29 +209,134 @@ class AnalyticsService:
         )
     
     @staticmethod
-    def get_heatmap(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> list[HeatmapCell]:
-        query = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+    def get_heatmap(db: Session, user: User, level: str, date_start: datetime.date | None, date_end: datetime.date | None) -> HeatmapResponse:
+        # Default to 1 year if no bounds provided
+        actual_start = date_start if date_start else (datetime.date.today() - datetime.timedelta(days=365))
+        actual_end = date_end if date_end else datetime.date.today()
+        
+        # We need datetime objects for timeline generation
+        start_dt = datetime.datetime.combine(actual_start, datetime.time.min)
+        end_dt = datetime.datetime.combine(actual_end, datetime.time.max)
+        
+        # 1. Generate Contiguous Timeline Buckets
+        timeline = {}
+        curr = start_dt
+        
+        if level == "year":
+            # Month resolution
+            curr = curr.replace(day=1) # align to start of month
+            while curr <= end_dt:
+                bucket = curr.strftime('%Y-%m')
+                timeline[bucket] = {"ts": f"{bucket}-01T00:00:00Z", "sec": 0, "commits": set(), "projects": set()}
+                # Advance to next month
+                next_month = curr.month % 12 + 1
+                next_year = curr.year + (curr.month // 12)
+                curr = curr.replace(year=next_year, month=next_month, day=1)
+                
+        elif level == "month":
+            # Week resolution
+            # Align to Monday of the week
+            curr = curr - datetime.timedelta(days=curr.weekday())
+            while curr <= end_dt + datetime.timedelta(days=7):
+                bucket = curr.strftime('%Y-%W')
+                timeline[bucket] = {"ts": curr.strftime('%Y-%m-%dT00:00:00Z'), "sec": 0, "commits": set(), "projects": set()}
+                curr += datetime.timedelta(weeks=1)
+                
+        elif level == "week":
+            # Day resolution
+            while curr <= end_dt:
+                bucket = curr.strftime('%Y-%m-%d')
+                timeline[bucket] = {"ts": f"{bucket}T00:00:00Z", "sec": 0, "commits": set(), "projects": set()}
+                curr += datetime.timedelta(days=1)
+                
+        elif level == "day":
+            # Hour resolution
+            curr = curr.replace(minute=0, second=0, microsecond=0)
+            while curr <= end_dt:
+                bucket = curr.strftime('%Y-%m-%d %H:00')
+                timeline[bucket] = {"ts": curr.strftime('%Y-%m-%dT%H:%M:%SZ'), "sec": 0, "commits": set(), "projects": set()}
+                curr += datetime.timedelta(hours=1)
+        else:
+            raise ValueError(f"Unknown level: {level}")
+
+        # 2. Fetch Aggregated DB Data
+        query = db.query(
+            TimeEntry.created_at,
+            TimeEntry.duration_seconds,
+            TimeEntry.commit_sha,
+            GithubRepository.full_name
+        ).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
         if date_end:
             query = query.filter(func.date(TimeEntry.created_at) <= date_end)
-        
-        entries = query.all()
-        heatmap = defaultdict(lambda: [0, 0])
-        for entry in entries:
-            dt = entry.created_at
-            heatmap[(dt.weekday(), dt.hour)][0] += entry.total_seconds
-            heatmap[(dt.weekday(), dt.hour)][1] += 1
             
-        result = []
-        for (w, h), stats in heatmap.items():
-            result.append(HeatmapCell(
-                weekday=w,
-                hour=h,
-                total_seconds=stats[0],
-                entry_count=stats[1]
-            ))
-        return result
+        entries = query.all()
+        
+        # 3. Map to Buckets
+        for e in entries:
+            bucket = None
+            if level == "year":
+                bucket = e.created_at.strftime('%Y-%m')
+            elif level == "month":
+                bucket = e.created_at.strftime('%Y-%W')
+            elif level == "week":
+                bucket = e.created_at.strftime('%Y-%m-%d')
+            elif level == "day":
+                bucket = e.created_at.strftime('%Y-%m-%d %H:00')
+                
+            if bucket in timeline:
+                t = timeline[bucket]
+                t["sec"] += e.duration_seconds
+                if e.commit_sha:
+                    t["commits"].add(e.commit_sha)
+                if e.full_name:
+                    t["projects"].add(e.full_name)
+
+        # 4. Resolve Commit Messages for deepest level (day/hours)
+        all_shas = set()
+        if level == "day":
+            for t in timeline.values():
+                all_shas.update(t["commits"])
+                
+        link_map = {}
+        if all_shas:
+            links = db.query(CommitLink).filter(CommitLink.commit_sha.in_(list(all_shas))).all()
+            link_map = {l.commit_sha: l.commit_message for l in links}
+            
+            missing = all_shas - set(link_map.keys())
+            if missing:
+                bcs = db.query(BranchCommit).filter(BranchCommit.commit_sha.in_(list(missing))).all()
+                for bc in bcs:
+                    link_map[bc.commit_sha] = bc.message
+
+        # 5. Format Response
+        data_points = []
+        max_duration = 0
+        
+        for bucket, t in timeline.items():
+            max_duration = max(max_duration, t["sec"])
+            
+            point = HeatmapDataPoint(
+                timestamp=t["ts"],
+                total_duration_seconds=t["sec"],
+                commit_count=len(t["commits"])
+            )
+            
+            if level == "day":
+                point.projects = list(t["projects"])
+                point.commits = [{"sha": sha, "message": link_map.get(sha, "No message")} for sha in t["commits"]]
+                
+            data_points.append(point)
+            
+        return HeatmapResponse(
+            level=level,
+            start_date=actual_start.isoformat(),
+            end_date=actual_end.isoformat(),
+            max_duration_seconds=max_duration,
+            data=data_points
+        )
     
     @staticmethod
     def get_keyword_frequency(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> list[KeywordFrequencyItem]:
