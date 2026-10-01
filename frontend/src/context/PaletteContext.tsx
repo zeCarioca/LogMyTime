@@ -1,12 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Oklch, OklchPaletteGenerator, PaletteProfile, HarmonyType } from '../utils/OklchPaletteGenerator';
 
+export interface SavedPalette {
+  id: string;
+  name: string;
+  config: { baseHue: number; profile: PaletteProfile; harmony: HarmonyType };
+}
+
 interface PaletteState {
   baseHue: number;
   profile: PaletteProfile;
   harmony: HarmonyType;
   currentPalette: Oklch[];
   isOpen: boolean;
+  savedPalettes: SavedPalette[];
 }
 
 interface PaletteContextType extends PaletteState {
@@ -15,6 +22,9 @@ interface PaletteContextType extends PaletteState {
   setHarmony: (harmony: HarmonyType) => void;
   generate: () => void;
   toggleWidget: () => void;
+  saveCurrentPalette: (name: string) => void;
+  loadPalette: (id: string) => void;
+  deletePalette: (id: string) => void;
 }
 
 const defaultState: PaletteState = {
@@ -23,19 +33,24 @@ const defaultState: PaletteState = {
   harmony: 'analogous',
   currentPalette: [],
   isOpen: false,
+  savedPalettes: [
+    { id: '1', name: 'Neon Cyber', config: { baseHue: 320, profile: 'neon', harmony: 'triadic' } },
+    { id: '2', name: 'Forest Earth', config: { baseHue: 120, profile: 'muted', harmony: 'analogous' } },
+    { id: '3', name: 'Ocean Depth', config: { baseHue: 240, profile: 'deep', harmony: 'complementary' } },
+  ],
 };
 
 const PaletteContext = createContext<PaletteContextType | undefined>(undefined);
 
 export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<PaletteState>(() => {
-    const saved = localStorage.getItem('lmt_palette_generator_state');
+    const saved = localStorage.getItem('lmt_palette_generator_state_v2');
     return saved ? JSON.parse(saved) : defaultState;
   });
 
   // Save state to localStorage
   useEffect(() => {
-    localStorage.setItem('lmt_palette_generator_state', JSON.stringify(state));
+    localStorage.setItem('lmt_palette_generator_state_v2', JSON.stringify(state));
   }, [state]);
 
   const generate = useCallback(() => {
@@ -55,8 +70,35 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
   const setHarmony = (harmony: HarmonyType) => setState(prev => ({ ...prev, harmony }));
   const toggleWidget = () => setState(prev => ({ ...prev, isOpen: !prev.isOpen }));
 
-  // Apply the first color as the primary hue for the app (integration with useTheme concept)
-  // Actually, wait, useTheme already controls --primary-hue. We can just set CSS variables for the palette here:
+  const saveCurrentPalette = (name: string) => {
+    if (!name.trim()) return;
+    const newPalette: SavedPalette = {
+      id: Date.now().toString(),
+      name: name.trim(),
+      config: { baseHue: state.baseHue, profile: state.profile, harmony: state.harmony },
+    };
+    setState(prev => ({ ...prev, savedPalettes: [...prev.savedPalettes, newPalette] }));
+  };
+
+  const loadPalette = (id: string) => {
+    const target = state.savedPalettes.find(p => p.id === id);
+    if (target) {
+      setState(prev => ({
+        ...prev,
+        baseHue: target.config.baseHue,
+        profile: target.config.profile,
+        harmony: target.config.harmony,
+      }));
+    }
+  };
+
+  const deletePalette = (id: string) => {
+    setState(prev => ({
+      ...prev,
+      savedPalettes: prev.savedPalettes.filter(p => p.id !== id)
+    }));
+  };
+
   useEffect(() => {
     if (state.currentPalette.length > 0) {
       state.currentPalette.forEach((color, index) => {
@@ -65,12 +107,21 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
           OklchPaletteGenerator.formatOklch(color)
         );
       });
-      // Optionally override --primary if requested, but let's just expose them as --palette-color-X for now.
     }
   }, [state.currentPalette]);
 
   return (
-    <PaletteContext.Provider value={{ ...state, setBaseHue, setProfile, setHarmony, generate, toggleWidget }}>
+    <PaletteContext.Provider value={{ 
+      ...state, 
+      setBaseHue, 
+      setProfile, 
+      setHarmony, 
+      generate, 
+      toggleWidget,
+      saveCurrentPalette,
+      loadPalette,
+      deletePalette
+    }}>
       {children}
     </PaletteContext.Provider>
   );

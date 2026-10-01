@@ -3,12 +3,14 @@ import { usePaletteGenerator } from '../../context/PaletteContext';
 import { OklchPaletteGenerator } from '../../utils/OklchPaletteGenerator';
 
 export const PaletteGeneratorWidget: React.FC = () => {
+  const [saveName, setSaveName] = React.useState('');
   const { 
     isOpen, toggleWidget, 
     baseHue, setBaseHue, 
     profile, setProfile, 
     harmony, setHarmony, 
-    currentPalette, generate 
+    currentPalette, generate,
+    savedPalettes, saveCurrentPalette, loadPalette, deletePalette
   } = usePaletteGenerator();
 
   if (!isOpen) {
@@ -101,10 +103,10 @@ export const PaletteGeneratorWidget: React.FC = () => {
               key={idx} 
               style={{ 
                 flex: 1, 
-                backgroundColor: OklchPaletteGenerator.formatOklch(color),
+                backgroundColor: `oklch(${OklchPaletteGenerator.formatOklch(color)})`,
                 transition: 'background-color 0.3s ease'
               }} 
-              title={OklchPaletteGenerator.formatOklch(color)}
+              title={`oklch(${OklchPaletteGenerator.formatOklch(color)})`}
             />
           ))}
         </div>
@@ -112,6 +114,41 @@ export const PaletteGeneratorWidget: React.FC = () => {
           {currentPalette.map((color, idx) => (
             <span key={idx}>L:{Math.round(color.l*100)} C:{color.c.toFixed(2)}</span>
           ))}
+        </div>
+      </div>
+
+      <div style={{ marginTop: '1rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem' }}>
+        <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Saved Palettes</h4>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <input 
+            type="text" 
+            placeholder="Palette Name" 
+            value={saveName}
+            onChange={(e) => setSaveName(e.target.value)}
+            className="form-control"
+            style={{ flex: 1, padding: '0.4rem' }}
+          />
+          <button 
+            className="btn btn-outline" 
+            onClick={() => { saveCurrentPalette(saveName); setSaveName(''); }}
+          >
+            Save
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
+          {savedPalettes.map(p => (
+            <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(0,0,0,0.2)', padding: '0.4rem 0.6rem', borderRadius: '6px' }}>
+              <span style={{ fontSize: '0.85rem' }}>{p.name}</span>
+              <div style={{ display: 'flex', gap: '0.3rem' }}>
+                <button className="btn btn-xs btn-primary" onClick={() => loadPalette(p.id)}>Load</button>
+                <button className="btn btn-xs btn-danger" onClick={() => deletePalette(p.id)}>✕</button>
+              </div>
+            </div>
+          ))}
+          {savedPalettes.length === 0 && (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textAlign: 'center' }}>No saved palettes.</div>
+          )}
         </div>
       </div>
 

@@ -83,7 +83,7 @@ export class OklchPaletteGenerator {
   }
   
   public static formatOklch(oklch: Oklch): string {
-    return `oklch(${Math.round(oklch.l * 100)}% ${oklch.c.toFixed(3)} ${Math.round(oklch.h)})`;
+    return `${Math.round(oklch.l * 100)}% ${oklch.c.toFixed(3)} ${Math.round(oklch.h)}`;
   }
 
   // ==========================================

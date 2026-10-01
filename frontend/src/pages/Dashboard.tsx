@@ -5,17 +5,14 @@ import {
   ReposCard,
   CommitPairingQueue,
   LocalGitStatus,
-  ThemeCard,
-  SavedPalettes,
 } from '../components';
-import { useTimer, useRepos, useGitStatus, useTheme } from '../hooks';
+import { useTimer, useRepos, useGitStatus } from '../hooks';
 import { timeApi } from '../api/time';
 
 export const Dashboard: React.FC = () => {
   const { seconds, isRunning, start, pause, reset, addMinutes, formattedTime } = useTimer();
   const { activeRepos, archivedRepos, refreshRepos, toggleArchive, refetchRepos } = useRepos();
   const { gitStatus, setLocalPath } = useGitStatus();
-  const { accentHue, savedPalettes, updateHue, saveCurrentPalette, deletePalette } = useTheme();
   const [refreshPairingTrigger, setRefreshPairingTrigger] = React.useState<number>(0);
 
   const handleSaveTime = async (repoId: number, description: string, durationSec: number) => {
@@ -68,18 +65,6 @@ export const Dashboard: React.FC = () => {
         <CommitPairingQueue onPairConfirmed={refetchRepos} refreshTrigger={refreshPairingTrigger} />
       </div>
 
-
-      {/* Column 3: Theme Panel */}
-      <div className="dashboard-col">
-        <ThemeCard accentHue={accentHue} onHueChange={updateHue} />
-        <SavedPalettes
-          accentHue={accentHue}
-          savedPalettes={savedPalettes}
-          onSelectHue={updateHue}
-          onSavePalette={saveCurrentPalette}
-          onDeletePalette={deletePalette}
-        />
-      </div>
     </div>
   );
 };
