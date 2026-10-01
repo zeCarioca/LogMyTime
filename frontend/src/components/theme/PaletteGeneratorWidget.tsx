@@ -4,19 +4,19 @@ import { OklchPaletteGenerator } from '../../utils/OklchPaletteGenerator';
 
 export const PaletteGeneratorWidget: React.FC = () => {
   const [saveName, setSaveName] = React.useState('');
-  const { 
-    isOpen, toggleWidget, 
-    baseHue, setBaseHue, 
-    profile, setProfile, 
-    harmony, setHarmony, 
+  const {
+    isOpen, toggleWidget,
+    baseHue, setBaseHue,
+    profile, setProfile,
+    harmony, setHarmony,
     currentPalette,
     savedPalettes, saveCurrentPalette, loadPalette, deletePalette
   } = usePaletteGenerator();
 
   if (!isOpen) {
     return (
-      <button 
-        className="btn btn-primary" 
+      <button
+        className="btn btn-primary"
         style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000, borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0 }}
         onClick={toggleWidget}
         title="Open Palette Generator"
@@ -29,13 +29,13 @@ export const PaletteGeneratorWidget: React.FC = () => {
   }
 
   return (
-    <div 
-      className="card" 
-      style={{ 
-        position: 'fixed', 
-        bottom: '20px', 
-        right: '20px', 
-        width: '350px', 
+    <div
+      className="card"
+      style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        width: '350px',
         zIndex: 1000,
         boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
         display: 'flex',
@@ -50,11 +50,11 @@ export const PaletteGeneratorWidget: React.FC = () => {
 
       <div className="form-group">
         <label>Base Hue ({baseHue}°)</label>
-        <input 
-          type="range" 
-          min="0" 
-          max="360" 
-          value={baseHue} 
+        <input
+          type="range"
+          min="0"
+          max="360"
+          value={baseHue}
           onChange={(e) => setBaseHue(Number(e.target.value))}
           style={{ width: '100%' }}
         />
@@ -63,8 +63,8 @@ export const PaletteGeneratorWidget: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
         <div className="form-group">
           <label>Profile</label>
-          <select 
-            value={profile} 
+          <select
+            value={profile}
             onChange={(e) => setProfile(e.target.value as any)}
             className="input-field"
           >
@@ -78,8 +78,8 @@ export const PaletteGeneratorWidget: React.FC = () => {
 
         <div className="form-group">
           <label>Harmony</label>
-          <select 
-            value={harmony} 
+          <select
+            value={harmony}
             onChange={(e) => setHarmony(e.target.value as any)}
             className="input-field"
           >
@@ -96,20 +96,20 @@ export const PaletteGeneratorWidget: React.FC = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
         <div style={{ display: 'flex', height: '50px', borderRadius: '8px', overflow: 'hidden' }}>
           {currentPalette.map((color, idx) => (
-            <div 
-              key={idx} 
-              style={{ 
-                flex: 1, 
+            <div
+              key={idx}
+              style={{
+                flex: 1,
                 backgroundColor: `oklch(${OklchPaletteGenerator.formatOklch(color)})`,
                 transition: 'background-color 0.3s ease'
-              }} 
+              }}
               title={`oklch(${OklchPaletteGenerator.formatOklch(color)})`}
             />
           ))}
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${currentPalette.length}, 1fr)`, gap: '4px', textAlign: 'center', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
           {currentPalette.map((color, idx) => (
-            <span key={idx}>L:{Math.round(color.l*100)} C:{color.c.toFixed(2)}</span>
+            <span key={idx}>L:{Math.round(color.l * 100)} C:{color.c.toFixed(2)}</span>
           ))}
         </div>
       </div>
@@ -117,16 +117,16 @@ export const PaletteGeneratorWidget: React.FC = () => {
       <div style={{ marginTop: '1rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem' }}>
         <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>Saved Palettes</h4>
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <input 
-            type="text" 
-            placeholder="Palette Name" 
+          <input
+            type="text"
+            placeholder="Palette Name"
             value={saveName}
             onChange={(e) => setSaveName(e.target.value)}
             className="form-control"
             style={{ flex: 1, padding: '0.4rem' }}
           />
-          <button 
-            className="btn btn-outline" 
+          <button
+            className="btn btn-outline"
             onClick={() => { saveCurrentPalette(saveName); setSaveName(''); }}
           >
             Save

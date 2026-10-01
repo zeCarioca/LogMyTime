@@ -101,7 +101,7 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
     if (state.currentPalette.length > 0) {
       state.currentPalette.forEach((color, index) => {
         document.documentElement.style.setProperty(
-          `--palette-color-${index}`, 
+          `--palette-color-${index}`,
           OklchPaletteGenerator.formatOklch(color)
         );
       });
@@ -109,12 +109,12 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [state.currentPalette]);
 
   return (
-    <PaletteContext.Provider value={{ 
-      ...state, 
-      setBaseHue, 
-      setProfile, 
-      setHarmony, 
-      generate, 
+    <PaletteContext.Provider value={{
+      ...state,
+      setBaseHue,
+      setProfile,
+      setHarmony,
+      generate,
       toggleWidget,
       saveCurrentPalette,
       loadPalette,

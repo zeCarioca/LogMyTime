@@ -142,20 +142,45 @@ export class OklchPaletteGenerator {
     const bounds = this.getProfileBounds(profile);
     const clusteredHue = this.applyHueClustering(profile, baseHue);
     const hues = this.getHarmonicHues(clusteredHue, harmony);
+    
+    // Safely cycle through harmonic hues if we need more colors than the harmony provides
+    const getHue = (idx: number) => hues[idx % hues.length];
 
-    return hues.map((hue, index) => {
-      // Dynamic Distribution: Add slight variance so colors don't visually compete perfectly flatly
-      const lVariance = (index % 2 === 0 ? 0.02 : -0.02);
-      const cVariance = (index % 3 === 0 ? 0.01 : -0.01);
-      
-      let L = this.randomInRange(bounds.lMin, bounds.lMax) + lVariance;
-      let C = this.randomInRange(bounds.cMin, bounds.cMax) + cVariance;
-
-      L = Math.max(0, Math.min(1, L));
-      C = Math.max(0, C);
-
-      const color: Oklch = { l: L, c: C, h: hue };
-      return this.clipToGamut(color);
+    // Role 0: Primary Accent
+    const c0 = this.clipToGamut({
+      l: this.randomInRange(bounds.lMin, bounds.lMax),
+      c: this.randomInRange(bounds.cMin, bounds.cMax),
+      h: getHue(0)
     });
+
+    // Role 1: Secondary/Hover (Slightly shifted L/C)
+    const c1 = this.clipToGamut({
+      l: Math.max(0, Math.min(1, c0.l + (c0.l > 0.8 ? -0.07 : 0.07))),
+      c: Math.max(0, c0.c + (c0.c > 0.2 ? -0.02 : 0.02)),
+      h: getHue(1)
+    });
+
+    // Role 2: Borders (Dark mid-tone, low chroma tinted by profile)
+    const c2 = this.clipToGamut({
+      l: 0.35,
+      c: Math.min(bounds.cMax * 0.4, 0.06), 
+      h: getHue(2)
+    });
+
+    // Role 3: App Body Background (Deep dark tone)
+    const c3 = this.clipToGamut({
+      l: 0.14,
+      c: Math.min(bounds.cMax * 0.15, 0.025),
+      h: getHue(3)
+    });
+
+    // Role 4: Card Background (Slightly lighter dark tone)
+    const c4 = this.clipToGamut({
+      l: 0.20,
+      c: Math.min(bounds.cMax * 0.2, 0.035),
+      h: getHue(4)
+    });
+
+    return [c0, c1, c2, c3, c4];
   }
 }
