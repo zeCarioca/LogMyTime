@@ -7,7 +7,7 @@ interface CommitPairingQueueProps {
   refreshTrigger?: number;
 }
 
-export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ refreshTrigger }) => {
+export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ refreshTrigger, onPairConfirmed }) => {
   const [branchGroups, setBranchGroups] = useState<BranchWithCommits[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<string>('all');
   const [unassignedTimelogs, setUnassignedTimelogs] = useState<TimeEntry[]>([]);
@@ -97,6 +97,7 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ refreshT
       );
       // Clear selected timelogs but keep selectedCommitSha active
       setSelectedTimelogIds(new Set());
+      if (onPairConfirmed) onPairConfirmed();
     } catch (e: any) {
       console.error('Failed to bulk link timelogs to commit', e);
       setError('Failed to link selected timelogs to commit');
@@ -122,35 +123,22 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ refreshT
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+      <div className="pairing-dual-panels">
         {/* Left Column: Timelogs Container */}
-        <div style={{
-          background: 'var(--card-bg, #1e1e2e)',
-          border: '1px solid var(--card-border, #313244)',
-          borderRadius: '8px',
-          padding: '1rem',
-          minHeight: '300px'
-        }}>
-          <h3 style={{ fontSize: '1rem', margin: '0 0 0.75rem 0', color: 'var(--primary, #cba6f7)' }}>Timelogs</h3>
+        <div className="pairing-panel">
+          <h3 className="panel-title-group">Timelogs</h3>
           {unassignedTimelogs.length === 0 ? (
-            <p style={{ color: 'var(--text-muted, #a6adc8)', fontSize: '0.85rem' }}>No timelogs available.</p>
+            <p className="empty-panel-state">No timelogs available.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto' }}>
+            <div className="panel-scroll-body">
               {unassignedTimelogs.map((t) => {
                 const isSelected = selectedTimelogIds.has(t.id);
                 return (
                   <div
                     key={t.id}
                     onClick={() => toggleTimelogSelection(t.id)}
-                    style={{
-                      background: 'var(--bg-gradient, #11111b)',
-                      border: isSelected ? '2px solid var(--primary, #cba6f7)' : '1px solid var(--card-border, #313244)',
-                      borderRadius: '6px',
-                      padding: '0.75rem 1rem',
-                      cursor: 'pointer',
-                      boxShadow: isSelected ? '0 0 8px rgba(203, 166, 247, 0.3)' : 'none',
-                      transition: 'all 0.15s ease-in-out'
-                    }}
+                    className={`panel-item ${isSelected ? 'selected' : ''}`}
+                    style={{ flexDirection: 'column', alignItems: 'stretch' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                       <span style={{ fontWeight: 'bold', color: 'var(--primary, #cba6f7)' }}>{t.task_description}</span>
@@ -167,15 +155,9 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ refreshT
         </div>
 
         {/* Right Column: Recent Commits Container */}
-        <div style={{
-          background: 'var(--card-bg, #1e1e2e)',
-          border: '1px solid var(--card-border, #313244)',
-          borderRadius: '8px',
-          padding: '1rem',
-          minHeight: '300px'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <h3 style={{ fontSize: '1rem', margin: 0, color: 'var(--primary, #cba6f7)' }}>Recent Commits</h3>
+        <div className="pairing-panel">
+          <div className="panel-header">
+            <h3 className="panel-title-group">Recent Commits</h3>
             <select
               value={selectedBranch}
               onChange={(e) => setSelectedBranch(e.target.value)}
@@ -198,24 +180,17 @@ export const CommitPairingQueue: React.FC<CommitPairingQueueProps> = ({ refreshT
             </select>
           </div>
           {displayedCommits.length === 0 ? (
-            <p style={{ color: 'var(--text-muted, #a6adc8)', fontSize: '0.85rem' }}>No commits available.</p>
+            <p className="empty-panel-state">No commits available.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '350px', overflowY: 'auto' }}>
+            <div className="panel-scroll-body">
               {displayedCommits.map((c, index) => {
                 const isSelected = selectedCommitSha === c.sha;
                 return (
                   <div
                     key={c.sha || index}
                     onClick={() => toggleCommitSelection(c.sha)}
-                    style={{
-                      background: 'var(--bg-gradient, #11111b)',
-                      border: isSelected ? '2px solid var(--success, #a6e3a1)' : '1px solid var(--card-border, #313244)',
-                      borderRadius: '6px',
-                      padding: '0.75rem 1rem',
-                      cursor: 'pointer',
-                      boxShadow: isSelected ? '0 0 8px rgba(166, 227, 161, 0.3)' : 'none',
-                      transition: 'all 0.15s ease-in-out'
-                    }}
+                    className={`panel-item ${isSelected ? 'selected' : ''}`}
+                    style={{ flexDirection: 'column', alignItems: 'stretch' }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
                       <span style={{ fontWeight: 'bold', color: isSelected ? 'var(--success, #a6e3a1)' : 'var(--primary, #cba6f7)' }}>

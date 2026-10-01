@@ -131,7 +131,8 @@ class GitHubService:
                 'duration_seconds': entry.total_seconds,
                 'duration_minutes': entry.duration_minutes or round(entry.total_seconds / 60.0, 2),
                 'logged_at': entry.created_at.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                'synced_at': now_iso
+                'synced_at': now_iso,
+                'commit_sha': getattr(entry, 'commit_sha', None)
             })
             total_synced_minutes += (entry.total_seconds / 60.0)
 
