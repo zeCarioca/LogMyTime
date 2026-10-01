@@ -40,9 +40,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
     const data = heatmapData.data;
     const firstDate = new Date(data[0].timestamp);
     // 0: Sunday, 1: Monday, ... 6: Saturday
-    // We want Monday to be row 0, so subtract 1 and wrap around
-    let startDayOfWeek = firstDate.getUTCDay() - 1;
-    if (startDayOfWeek < 0) startDayOfWeek = 6; 
+    const startDayOfWeek = firstDate.getUTCDay();
     
     // Add dummy cells for padding to align the first day to the correct row
     const paddedCells: (HeatmapDataPoint | null)[] = Array(startDayOfWeek).fill(null);
@@ -63,9 +61,8 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
         const m = d.getUTCMonth();
         if (m !== currentMonth) {
           const colIndex = Math.floor(index / 7);
-          // Only add label if it's sufficiently far from the previous label to avoid overlap
           if (labels.length === 0 || colIndex - labels[labels.length - 1].colIndex >= 3) {
-            labels.push({ name: d.toLocaleDateString(undefined, { month: 'short' }), colIndex });
+            labels.push({ name: d.toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short' }), colIndex });
           }
           currentMonth = m;
         }
@@ -98,7 +95,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
           </div>
         ) : (
           <div className="github-heatmap">
-            {/* Y Axis */}
+            {/* Y Axis (Row 0 is Sunday) */}
             <div className="heatmap-y-axis">
               <span></span>
               <span>Mon</span>
@@ -134,7 +131,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
                   }
                   
                   const level = getHeatmapLevel(cell.total_duration_seconds, maxDuration);
-                  const dateStr = new Date(cell.timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+                  const dateStr = new Date(cell.timestamp).toLocaleDateString(undefined, { timeZone: 'UTC', month: 'short', day: 'numeric', year: 'numeric' });
                   const hrs = Math.floor(cell.total_duration_seconds / 3600);
                   const mins = Math.floor((cell.total_duration_seconds % 3600) / 60);
                   

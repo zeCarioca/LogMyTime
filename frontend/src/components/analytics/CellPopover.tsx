@@ -24,7 +24,7 @@ export const CellPopover: React.FC<CellPopoverProps> = ({ point, onClose, anchor
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
-  const dateStr = new Date(point.timestamp).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+  const dateStr = new Date(point.timestamp).toLocaleDateString(undefined, { timeZone: 'UTC', weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
   const hrs = Math.floor(point.total_duration_seconds / 3600);
   const mins = Math.floor((point.total_duration_seconds % 3600) / 60);
   const timeLoggedStr = point.total_duration_seconds > 0 ? `${hrs}h ${mins}m logged` : 'No time logged';
