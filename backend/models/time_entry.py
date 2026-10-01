@@ -14,10 +14,10 @@ class TimeEntry(Base):
     task_description = Column(String(255), nullable=False)
     duration_seconds = Column(Integer, default=0, nullable=False)
     duration_minutes = Column(Integer, default=0, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     is_synced = Column(Boolean, default=False)
     synced_at = Column(DateTime, nullable=True)
-    commit_sha = Column(String(40), nullable=True, default=None)
+    commit_sha = Column(String(40), nullable=True, default=None, index=True)
     commit_message = Column(String(500), nullable=True, default=None)
 
     repository = relationship('GithubRepository', back_populates='time_entries')

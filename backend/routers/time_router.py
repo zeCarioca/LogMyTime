@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from schemas import TimeEntryCreate, TimeEntryOut
 from sqlalchemy.orm import Session
 
@@ -11,7 +11,7 @@ from services import GitHubService, SyncService
 router = APIRouter(tags=["Time Tracking"])
 
 @router.post("/log", response_model=TimeEntryOut)
-async def log_time(payload: TimeEntryCreate, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def log_time(payload: TimeEntryCreate, background_tasks: BackgroundTasks, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     repo = db.query(GithubRepository).filter(
         GithubRepository.id == payload.repo_id,
         GithubRepository.user_id == user.id
@@ -43,11 +43,11 @@ async def log_time(payload: TimeEntryCreate, user: User = Depends(get_current_us
     db.add(entry)
     db.commit()
     db.refresh(entry)
-    SyncService.update_local_timelogs_json(db, user)
+    background_tasks.add_task(SyncService.update_local_timelogs_json, db, user)
     return entry
 
 @router.delete("/{entry_id}")
-async def delete_entry(entry_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def delete_entry(entry_id: int, background_tasks: BackgroundTasks, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     entry = db.query(TimeEntry).join(GithubRepository).filter(
         TimeEntry.id == entry_id,
         GithubRepository.user_id == user.id
@@ -58,11 +58,11 @@ async def delete_entry(entry_id: int, user: User = Depends(get_current_user), db
 
     db.delete(entry)
     db.commit()
-    SyncService.update_local_timelogs_json(db, user)
+    background_tasks.add_task(SyncService.update_local_timelogs_json, db, user)
     return {"status": "success", "message": "Time entry deleted"}
 
 @router.post("/sync-manual/{repo_id}")
-async def manual_sync(repo_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def manual_sync(repo_id: int, background_tasks: BackgroundTasks, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     repo = db.query(GithubRepository).filter(
         GithubRepository.id == repo_id,
         GithubRepository.user_id == user.id
@@ -93,7 +93,7 @@ async def manual_sync(repo_id: int, user: User = Depends(get_current_user), db: 
                 e.is_synced = True
                 e.synced_at = now
             db.commit()
-            SyncService.update_local_timelogs_json(db, user)
+            background_tasks.add_task(SyncService.update_local_timelogs_json, db, user)
             return {"status": "success", "synced_count": len(unsynced_entries)}
         else:
             raise HTTPException(status_code=500, detail=sync_res.get('error', 'Sync failed'))

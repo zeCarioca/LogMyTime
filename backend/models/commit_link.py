@@ -21,7 +21,7 @@ class CommitLink(Base):
     commit_sha = Column(String(40), nullable=False)
     commit_message = Column(String(500), nullable=False)
     commit_date = Column(DateTime, nullable=False)
-    status = Column(Enum(CommitStatus), default=CommitStatus.pending, nullable=False)
+    status = Column(Enum(CommitStatus), default=CommitStatus.pending, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     time_entry = relationship('TimeEntry')

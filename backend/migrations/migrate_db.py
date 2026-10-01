@@ -39,6 +39,12 @@ def migrate():
     """)
     print("Checked 'analytics_goals' table.")
 
+    # Add Indexes
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_time_entries_created_at ON time_entries(created_at);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_time_entries_commit_sha ON time_entries(commit_sha);")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_commit_links_status ON commit_links(status);")
+    print("Checked database indexes.")
+
     conn.commit()
     conn.close()
     print("Database migration check completed successfully.")

@@ -28,6 +28,12 @@ export function useAuth() {
 
   useEffect(() => {
     checkAuth();
+    
+    const handleUnauthorized = () => {
+      setUser(null);
+    };
+    window.addEventListener('unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('unauthorized', handleUnauthorized);
   }, [checkAuth]);
 
   const logout = async () => {

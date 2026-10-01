@@ -1,5 +1,8 @@
 import os
 import subprocess
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class GitService:
@@ -24,7 +27,8 @@ class GitService:
                 check=False
             )
             return res.stdout.strip() if res.returncode == 0 else ""
-        except Exception:
+        except Exception as e:
+            logger.error(f"Git subprocess error: {e}")
             return ""
 
     def get_branch(self) -> str:
