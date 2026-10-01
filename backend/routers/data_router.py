@@ -6,9 +6,10 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from models import GithubRepository, TimeEntry, User, get_db
+from models import GithubRepository, TimeEntry, User, BranchCommit, get_db
 from routers.auth_router import get_current_user
 from services import GitHubService, get_selected_repository, set_selected_repository
+import asyncio
 
 router = APIRouter(tags=["Data & Hierarchy"])
 
@@ -30,25 +31,46 @@ async def get_hierarchy(
     hierarchy = []
 
     for r in repos:
-        raw_commits = []
-        try:
-            raw_commits = await gh.get_commits(r.full_name, branch=r.default_branch, per_page=15, author=user.github_username)
-        except Exception:
-            raw_commits = []
-
         commits_data = []
-        for c in raw_commits:
-            commit_info = c.get('commit', {})
-            author_info = commit_info.get('author', {})
-            commits_data.append({
-                'sha': c.get('sha', '')[:7],
-                'full_sha': c.get('sha', ''),
-                'message': commit_info.get('message', '').split('\n')[0],
-                'date': author_info.get('date', ''),
-                'url': c.get('html_url', '')
-            })
+        db_commits = db.query(BranchCommit).filter(
+            BranchCommit.repo_id == r.id, 
+            BranchCommit.branch_name == r.default_branch
+        ).order_by(BranchCommit.commit_date.desc()).limit(15).all()
 
-        time_entries = db.query(TimeEntry).filter(TimeEntry.repo_id == r.id).order_by(TimeEntry.created_at.desc()).all()
+        if db_commits:
+            for c in db_commits:
+                commits_data.append({
+                    'sha': c.short_sha or c.commit_sha[:7],
+                    'full_sha': c.commit_sha,
+                    'message': c.message.split('\n')[0] if c.message else '',
+                    'date': c.commit_date.isoformat() if c.commit_date else '',
+                    'url': f"https://github.com/{r.full_name}/commit/{c.commit_sha}"
+                })
+        else:
+            try:
+                raw_commits = await gh.get_commits(r.full_name, branch=r.default_branch, per_page=15, author=user.github_username)
+                for c in raw_commits:
+                    commit_info = c.get('commit', {})
+                    author_info = commit_info.get('author', {})
+                    commits_data.append({
+                        'sha': c.get('sha', '')[:7],
+                        'full_sha': c.get('sha', ''),
+                        'message': commit_info.get('message', '').split('\n')[0],
+                        'date': author_info.get('date', ''),
+                        'url': c.get('html_url', '')
+                    })
+            except Exception:
+                pass
+        from sqlalchemy import func
+        stats = db.query(
+            func.sum(TimeEntry.duration_seconds).label('total_sec'),
+            func.count(TimeEntry.id).label('count')
+        ).filter(TimeEntry.repo_id == r.id).first()
+        
+        total_repo_sec = int(stats.total_sec or 0) if stats else 0
+        total_repo_count = int(stats.count or 0) if stats else 0
+
+        time_entries = db.query(TimeEntry).filter(TimeEntry.repo_id == r.id).order_by(TimeEntry.created_at.desc()).limit(50).all()
         entries_data = []
         for entry in time_entries:
             entries_data.append({
@@ -78,9 +100,9 @@ async def get_hierarchy(
                     'commits': commits_data,
                     'time_records': entries_data,
                     'summary': {
-                        'total_seconds': sum(e['duration_seconds'] for e in entries_data),
-                        'total_minutes': round(sum(e['duration_seconds'] for e in entries_data) / 60.0, 2),
-                        'total_entries': len(entries_data),
+                        'total_seconds': total_repo_sec,
+                        'total_minutes': round(total_repo_sec / 60.0, 2),
+                        'total_entries': total_repo_count,
                         'total_commits': len(commits_data)
                     }
                 }

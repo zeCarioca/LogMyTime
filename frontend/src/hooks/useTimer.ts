@@ -1,17 +1,56 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-export function useTimer() {
-  const [seconds, setSeconds] = useState<number>(0);
-  const [isRunning, setIsRunning] = useState<boolean>(false);
-  const timerRef = useRef<number | null>(null);
-  
-  const startTimeRef = useRef<number | null>(null);
-  const accumulatedRef = useRef<number>(0);
+const STORAGE_KEY = 'logmytime_timer_state';
 
+interface TimerState {
+  isRunning: boolean;
+  startTime: number | null;
+  accumulated: number;
+}
+
+const loadState = (): TimerState => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to parse timer state', e);
+  }
+  return { isRunning: false, startTime: null, accumulated: 0 };
+};
+
+const saveState = (state: TimerState) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.error('Failed to save timer state', e);
+  }
+};
+
+export function useTimer() {
+  const [isRunning, setIsRunning] = useState<boolean>(() => loadState().isRunning);
+  
+  const startTimeRef = useRef<number | null>(loadState().startTime);
+  const accumulatedRef = useRef<number>(loadState().accumulated);
+  
+  const [seconds, setSeconds] = useState<number>(() => {
+    const init = loadState();
+    if (init.isRunning && init.startTime !== null) {
+      return Math.max(0, init.accumulated + Math.floor((Date.now() - init.startTime) / 1000));
+    }
+    return Math.max(0, init.accumulated);
+  });
+  
+  const timerRef = useRef<number | null>(null);
+
+  // This handles the periodic UI update
   useEffect(() => {
     if (isRunning) {
+      // If we somehow lost startTime but are running, fix it
       if (startTimeRef.current === null) {
         startTimeRef.current = Date.now();
+        saveState({ isRunning: true, startTime: startTimeRef.current, accumulated: accumulatedRef.current });
       }
       
       timerRef.current = window.setInterval(() => {
@@ -25,11 +64,13 @@ export function useTimer() {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
+      // If we transitioned to paused but still have a startTime, commit it to accumulated
       if (startTimeRef.current !== null) {
         const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
         accumulatedRef.current = Math.max(0, accumulatedRef.current + elapsed);
         startTimeRef.current = null;
         setSeconds(accumulatedRef.current);
+        saveState({ isRunning: false, startTime: null, accumulated: accumulatedRef.current });
       }
     }
 
@@ -41,14 +82,31 @@ export function useTimer() {
     };
   }, [isRunning]);
 
-  const start = useCallback(() => setIsRunning(true), []);
-  const pause = useCallback(() => setIsRunning(false), []);
+  const start = useCallback(() => {
+    if (startTimeRef.current === null) {
+      startTimeRef.current = Date.now();
+    }
+    setIsRunning(true);
+    saveState({ isRunning: true, startTime: startTimeRef.current, accumulated: accumulatedRef.current });
+  }, []);
+  
+  const pause = useCallback(() => {
+    setIsRunning(false);
+    if (startTimeRef.current !== null) {
+      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      accumulatedRef.current = Math.max(0, accumulatedRef.current + elapsed);
+      startTimeRef.current = null;
+    }
+    setSeconds(accumulatedRef.current);
+    saveState({ isRunning: false, startTime: null, accumulated: accumulatedRef.current });
+  }, []);
   
   const reset = useCallback(() => {
     setIsRunning(false);
     accumulatedRef.current = 0;
     startTimeRef.current = null;
     setSeconds(0);
+    saveState({ isRunning: false, startTime: null, accumulated: 0 });
   }, []);
 
   const addMinutes = useCallback((mins: number) => {
@@ -64,9 +122,11 @@ export function useTimer() {
       } else {
         setSeconds(newTotal);
       }
+      saveState({ isRunning: true, startTime: startTimeRef.current, accumulated: accumulatedRef.current });
     } else {
       if (accumulatedRef.current < 0) accumulatedRef.current = 0;
       setSeconds(accumulatedRef.current);
+      saveState({ isRunning: false, startTime: null, accumulated: accumulatedRef.current });
     }
   }, [isRunning]);
 
