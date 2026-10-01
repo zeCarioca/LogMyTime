@@ -1,43 +1,44 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { analyticsApi } from '../api/analytics';
 import { HeatmapResponse } from '../types';
 
-export type ZoomLevel = 'year' | 'month' | 'week' | 'day';
-
-export function useSemanticHeatmap(dateStart?: string, dateEnd?: string) {
-    const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('week');
+export function useSemanticHeatmap() {
+    const currentYear = new Date().getFullYear();
+    const [selectedYear, setSelectedYear] = useState<number>(currentYear);
     
-    const [cache, setCache] = useState<Record<string, HeatmapResponse | null>>({});
-    const [loadingState, setLoadingState] = useState<Record<string, boolean>>({});
+    const [cache, setCache] = useState<Record<number, HeatmapResponse | null>>({});
+    const [loadingState, setLoadingState] = useState<Record<number, boolean>>({});
 
-    // Clear cache if date range changes
-    useEffect(() => {
-        setCache({});
-        setLoadingState({});
-    }, [dateStart, dateEnd]);
+    const { dateStart, dateEnd } = useMemo(() => {
+        return {
+            dateStart: `${selectedYear}-01-01`,
+            dateEnd: `${selectedYear}-12-31`,
+        };
+    }, [selectedYear]);
 
     useEffect(() => {
-        if (cache[zoomLevel] !== undefined || loadingState[zoomLevel]) {
+        if (cache[selectedYear] !== undefined || loadingState[selectedYear]) {
             return;
         }
 
-        setLoadingState(prev => ({ ...prev, [zoomLevel]: true }));
+        setLoadingState(prev => ({ ...prev, [selectedYear]: true }));
 
-        analyticsApi.getHeatmap(zoomLevel, dateStart, dateEnd)
+        // Always use 'week' level to get day-resolution from the backend
+        analyticsApi.getHeatmap('week', dateStart, dateEnd)
             .then((data) => {
-                setCache(prev => ({ ...prev, [zoomLevel]: data }));
+                setCache(prev => ({ ...prev, [selectedYear]: data }));
             })
             .catch((err) => {
-                console.error("Failed to fetch semantic heatmap", err);
-                setCache(prev => ({ ...prev, [zoomLevel]: null }));
+                console.error("Failed to fetch github heatmap data", err);
+                setCache(prev => ({ ...prev, [selectedYear]: null }));
             })
             .finally(() => {
-                setLoadingState(prev => ({ ...prev, [zoomLevel]: false }));
+                setLoadingState(prev => ({ ...prev, [selectedYear]: false }));
             });
-    }, [zoomLevel, dateStart, dateEnd, cache, loadingState]);
+    }, [selectedYear, dateStart, dateEnd, cache, loadingState]);
 
-    const heatmapData = cache[zoomLevel] || null;
-    const isLoading = loadingState[zoomLevel] || (cache[zoomLevel] === undefined);
+    const heatmapData = cache[selectedYear] || null;
+    const isLoading = loadingState[selectedYear] || (cache[selectedYear] === undefined);
 
-    return { zoomLevel, setZoomLevel, heatmapData, isLoading };
+    return { selectedYear, setSelectedYear, heatmapData, isLoading };
 }
