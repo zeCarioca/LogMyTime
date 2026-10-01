@@ -12,6 +12,7 @@ interface PaletteState {
   profile: PaletteProfile;
   harmony: HarmonyType;
   currentPalette: Oklch[];
+  lockedColors: boolean[];
   isOpen: boolean;
   savedPalettes: SavedPalette[];
 }
@@ -20,6 +21,7 @@ interface PaletteContextType extends PaletteState {
   setBaseHue: (hue: number) => void;
   setProfile: (profile: PaletteProfile) => void;
   setHarmony: (harmony: HarmonyType) => void;
+  toggleColorLock: (index: number) => void;
   generate: () => void;
   toggleWidget: () => void;
   saveCurrentPalette: (name: string) => void;
@@ -32,6 +34,7 @@ const defaultState: PaletteState = {
   profile: 'vibrant',
   harmony: 'analogous',
   currentPalette: [],
+  lockedColors: [false, false, false, false, false],
   isOpen: false,
   savedPalettes: [
     { id: '1', name: 'Neon Cyber', config: { baseHue: 320, profile: 'neon', harmony: 'triadic' } },
@@ -45,7 +48,19 @@ const PaletteContext = createContext<PaletteContextType | undefined>(undefined);
 export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, setState] = useState<PaletteState>(() => {
     const saved = localStorage.getItem('lmt_palette_generator_state_v2');
-    return saved ? JSON.parse(saved) : defaultState;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...defaultState,
+          ...parsed,
+          lockedColors: parsed.lockedColors ?? [false, false, false, false, false],
+        };
+      } catch (e) {
+        return defaultState;
+      }
+    }
+    return defaultState;
   });
 
   // Save state to localStorage
@@ -54,8 +69,16 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
   }, [state]);
 
   const generate = useCallback(() => {
-    const palette = OklchPaletteGenerator.generatePalette(state.baseHue, state.profile, state.harmony);
-    setState(prev => ({ ...prev, currentPalette: palette }));
+    const generated = OklchPaletteGenerator.generatePalette(state.baseHue, state.profile, state.harmony);
+    setState(prev => {
+      const newPalette = generated.map((color, idx) => {
+        if (prev.lockedColors && prev.lockedColors[idx] && prev.currentPalette[idx]) {
+          return prev.currentPalette[idx];
+        }
+        return color;
+      });
+      return { ...prev, currentPalette: newPalette };
+    });
   }, [state.baseHue, state.profile, state.harmony]);
 
   // Auto-generate whenever baseHue, profile, or harmony changes
@@ -66,6 +89,13 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
   const setBaseHue = (hue: number) => setState(prev => ({ ...prev, baseHue: hue }));
   const setProfile = (profile: PaletteProfile) => setState(prev => ({ ...prev, profile }));
   const setHarmony = (harmony: HarmonyType) => setState(prev => ({ ...prev, harmony }));
+  const toggleColorLock = (index: number) => {
+    setState(prev => {
+      const newLocks = [...(prev.lockedColors ?? [false, false, false, false, false])];
+      newLocks[index] = !newLocks[index];
+      return { ...prev, lockedColors: newLocks };
+    });
+  };
   const toggleWidget = () => setState(prev => ({ ...prev, isOpen: !prev.isOpen }));
 
   const saveCurrentPalette = (name: string) => {
@@ -114,6 +144,7 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
       setBaseHue,
       setProfile,
       setHarmony,
+      toggleColorLock,
       generate,
       toggleWidget,
       saveCurrentPalette,
