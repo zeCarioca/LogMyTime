@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { useSemanticHeatmap } from '../../hooks/useSemanticHeatmap';
 import { HeatmapDataPoint } from '../../types';
+import { CellPopover } from './CellPopover';
 
 interface ActivityHeatmapProps {
   dateRange?: { start?: string; end?: string };
@@ -8,10 +9,20 @@ interface ActivityHeatmapProps {
 
 export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => {
   const { selectedYear, setSelectedYear, heatmapData, isLoading } = useSemanticHeatmap();
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  const [selectedCell, setSelectedCell] = useState<{ point: HeatmapDataPoint; rect: DOMRect } | null>(null);
 
-  const handleCellClick = (point: HeatmapDataPoint) => {
-    // Placeholder for future click-to-feed functionality
-    console.log("Clicked cell:", point);
+  useEffect(() => {
+    if (!isLoading && containerRef.current) {
+      containerRef.current.scrollLeft = containerRef.current.scrollWidth;
+    }
+  }, [isLoading, heatmapData]);
+
+  const handleCellClick = (point: HeatmapDataPoint, event: React.MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    const rect = event.currentTarget.getBoundingClientRect();
+    setSelectedCell({ point, rect });
   };
 
   const getHeatmapLevel = (duration: number, maxDuration: number): number => {
@@ -80,7 +91,7 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
         </select>
       </div>
 
-      <div className="github-heatmap-container">
+      <div className="github-heatmap-container" ref={containerRef}>
         {isLoading ? (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
             Loading heatmap...
@@ -101,15 +112,19 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
             {/* Grid Area */}
             <div className="heatmap-grid-wrapper">
               <div className="heatmap-x-axis">
-                {monthLabels.map((lbl, i) => (
-                  <span 
-                    key={i} 
-                    className="heatmap-month-label"
-                    style={{ left: `${lbl.colIndex * 17}px` }} 
-                  >
-                    {lbl.name}
-                  </span>
-                ))}
+                {monthLabels.map((lbl, i) => {
+                  const totalColumns = Math.max(1, Math.ceil(cells.length / 7));
+                  const leftPercentage = (lbl.colIndex / totalColumns) * 100;
+                  return (
+                    <span 
+                      key={i} 
+                      className="heatmap-month-label"
+                      style={{ left: `${leftPercentage}%` }} 
+                    >
+                      {lbl.name}
+                    </span>
+                  );
+                })}
               </div>
 
               <div className="heatmap-cells">
@@ -134,9 +149,9 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
                   return (
                     <div 
                       key={cell.timestamp}
-                      className={`heatmap-cell color-scale-${level}`}
+                      className={`heatmap-cell color-scale-${level} ${selectedCell?.point.timestamp === cell.timestamp ? 'selected-cell' : ''}`}
                       title={title}
-                      onClick={() => handleCellClick(cell)}
+                      onClick={(e) => handleCellClick(cell, e)}
                     ></div>
                   );
                 })}
@@ -145,6 +160,14 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(() => 
           </div>
         )}
       </div>
+      
+      {selectedCell && (
+        <CellPopover 
+          point={selectedCell.point} 
+          anchorRect={selectedCell.rect} 
+          onClose={() => setSelectedCell(null)} 
+        />
+      )}
     </div>
   );
 });

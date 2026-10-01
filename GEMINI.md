@@ -1,6 +1,6 @@
-# LogMyTime — Context, Architecture & Development Rules
+# LogMyTime — Context, Architecture & Rules
 
-State, architecture, conventions, rules for **LogMyTime** project.
+State, architecture, rules for **LogMyTime**.
 
 ---
 
@@ -10,10 +10,10 @@ State, architecture, conventions, rules for **LogMyTime** project.
 
 Capabilities:
 - Track time vs local Git & GitHub repos via circular timer + manual controls.
-- Detect new commits (GitHub API poll every N min) + show **confirm/reject UI** link commit to timelog.
-- Sync confirmed pairings to GitHub on every commit (syncs linked timelog immediately).
-- Read local git state (branch, last commit, staged files) via server `git` CLI subprocess.
-- Single-user, local-first SQLite DB via SQLAlchemy ORM.
+- Detect new commits (GitHub API poll) + show **confirm/reject UI** link commit to timelog.
+- Sync confirmed pairings to GitHub on every commit.
+- Read local git state via server `git` CLI subprocess.
+- Single-user, local SQLite DB via SQLAlchemy ORM.
 
 ---
 
@@ -27,12 +27,11 @@ Capabilities:
 | `instance/database.db` schema migration (CommitLink + new User cols + BranchCommit) | ✅ Applied |
 | Backend endpoints verified live (`/auth/me`, `/repos/`, `/commits/branches-with-commits`) | ✅ Verified |
 | End-to-end OAuth → Timer → CommitPairing → Sync flow | ✅ Verified |
-| Frontend Repository Unarchiving & Theme Persistence | ✅ Built & Verified |
-| `instance/local-git-log-commits.db` local git log database | ✅ Created & Populated |
-| Frontend `pairing-panel right-panel` local commit integration | ✅ Integrated & Verified |
-| Codebase Linting (Ruff for Python & `tsc --noEmit` for TypeScript) | ✅ Cleaned & Verified |
-| Legacy Flask root files (`app.py`, `models.py`, `routes/`, `services/`, `src/`) | ⚠️ Safe to delete after review |
-
+| Frontend Repo Unarchiving & Theme Persistence | ✅ Built & Verified |
+| `instance/local-git-log-commits.db` local git log database | ✅ Populated |
+| Frontend `pairing-panel` local commit integration | ✅ Verified |
+| Codebase Linting (Ruff for Python & `tsc --noEmit` for TypeScript) | ✅ Verified |
+| Legacy Flask root files (`app.py`, `models.py`, `routes/`, `services/`, `src/`) | ⚠️ Safe delete after review |
 
 ### Key Decisions
 
@@ -42,8 +41,8 @@ Capabilities:
 | JWT (Bearer) over server sessions | Token in `localStorage`, attached via Axios interceptor in `api/client.ts` |
 | `httpx` over `requests` | Async required for `async def` route handlers |
 | Oklch CSS variables | Runtime palette swapping without JS |
-| SQLite kept | Local-first design; zero infra; existing `instance/database.db` migrated in-place |
-| No Auto-Pairing by Recent Commits | Timelogs default `commit = None`, routing sends `project` + `commit` to frontend |
+| SQLite kept | Local-first; zero infra; existing `instance/database.db` migrated |
+| No Auto-Pairing | Timelogs default `commit = None`. Routing sends `project` + `commit` to frontend |
 | Local Git Log DB (`instance/local-git-log-commits.db`) | Scrapes `git log` CLI store local commit history for manual pairing panel |
 | Ruff Linter Integration | Fast Python linting, import formatting, static analysis |
 | Branch Commit Storage (`branch_commits` table) | Query GitHub branches API + store branch-labeled commits in SQLite |
@@ -54,66 +53,66 @@ Capabilities:
 
 ```
 log_my_time/
-├── GEMINI.md                     # This file: project context, rules, conventions
-├── README.md                     # User-facing feature documentation
-├── .env.example                  # Template for sensitive credentials
-├── .env                          # Local environment secrets (gitignored)
+├── GEMINI.md                     # This file: context, rules
+├── README.md                     # User docs
+├── .env.example                  # Template secrets
+├── .env                          # Local secrets (gitignored)
 ├── .gitignore
 ├── backend/                      # FastAPI Python REST API
-│   ├── app.py                    # FastAPI factory & server entry point
+│   ├── app.py                    # Entry point
 │   ├── requirements.txt          # Python deps
 │   ├── models/
 │   │   ├── __init__.py
 │   │   ├── database.py           # SQLAlchemy engine, session, Base
-│   │   ├── user.py               # User ORM model
-│   │   ├── repository.py         # GithubRepository ORM model
-│   │   ├── time_entry.py         # TimeEntry ORM model
-│   │   ├── commit_link.py        # CommitLink ORM model
-│   │   └── branch_commit.py      # BranchCommit ORM model
+│   │   ├── user.py               # User ORM
+│   │   ├── repository.py         # GithubRepository ORM
+│   │   ├── time_entry.py         # TimeEntry ORM
+│   │   ├── commit_link.py        # CommitLink ORM
+│   │   └── branch_commit.py      # BranchCommit ORM
 │   ├── routers/
 │   │   ├── __init__.py
 │   │   ├── auth_router.py        # GitHub OAuth
 │   │   ├── repo_router.py        # Repo sync & archive
-│   │   ├── time_router.py        # Time logging & summary
-│   │   ├── commit_router.py      # Commit polling, pairing, branch-commits endpoint
+│   │   ├── time_router.py        # Time logging
+│   │   ├── commit_router.py      # Commit polling, pairing
 │   │   └── data_router.py        # Data explorer & CSV export
 │   ├── services/
 │   │   ├── __init__.py
-│   │   ├── github_service.py     # GitHub REST API client
+│   │   ├── github_service.py     # GitHub REST client
 │   │   ├── git_service.py        # Local git CLI subprocess
 │   │   ├── sync_service.py       # Commit sync to timelogs branch
-│   │   ├── pairing_service.py    # Commit ↔ timelog pairing logic
-│   │   ├── branch_commit_service.py # Fetch & store branch commits
-│   │   └── preference_service.py # Preference storage
+│   │   ├── pairing_service.py    # Commit ↔ timelog logic
+│   │   ├── branch_commit_service.py # Fetch branch commits
+│   │   └── preference_service.py # Preferences
 │   ├── schemas/
 │   │   ├── __init__.py
-│   │   ├── user.py               # Pydantic schemas for User
-│   │   ├── repository.py         # Pydantic schemas for GithubRepository
-│   │   ├── time_entry.py         # Pydantic schemas for TimeEntry
-│   │   ├── commit_link.py        # Pydantic schemas for CommitLink
-│   │   └── branch_commit.py      # Pydantic schemas for BranchCommit
+│   │   ├── user.py               # User schemas
+│   │   ├── repository.py         # GithubRepository schemas
+│   │   ├── time_entry.py         # TimeEntry schemas
+│   │   ├── commit_link.py        # CommitLink schemas
+│   │   └── branch_commit.py      # BranchCommit schemas
 │   └── migrations/
-│       └── migrate_db.py         # Schema sync / migration script
+│       └── migrate_db.py         # Schema migration script
 └── frontend/                     # React + Vite + TypeScript SPA
     ├── package.json
     ├── vite.config.ts
     ├── tsconfig.json
     ├── index.html
     └── src/
-        ├── main.tsx              # App entry point
+        ├── main.tsx              # Entry point
         ├── App.tsx               # Root router & layout
         ├── types/
-        │   └── index.ts          # Shared TypeScript interfaces
+        │   └── index.ts          # Shared TS interfaces
         ├── api/
         │   ├── client.ts         # Axios client
-        │   ├── auth.ts           # Auth API calls
-        │   ├── repos.ts          # Repo API calls
-        │   ├── time.ts           # Time entry API calls
-        │   ├── commits.ts        # Commit API calls
-        │   └── data.ts           # Data & export API calls
+        │   ├── auth.ts           # Auth API
+        │   ├── repos.ts          # Repo API
+        │   ├── time.ts           # Time entry API
+        │   ├── commits.ts        # Commit API
+        │   └── data.ts           # Data export API
         ├── hooks/
         │   ├── useAuth.ts        # Auth state
-        │   ├── useRepos.ts       # Repo list & archive state
+        │   ├── useRepos.ts       # Repo state
         │   ├── useTimer.ts       # Circular timer engine
         │   ├── useCommitPoller.ts# Commit poller hook
         │   └── useTheme.ts       # Theme palette state
@@ -122,7 +121,7 @@ log_my_time/
         │   ├── timer/
         │   ├── repos/
         │   ├── commits/
-        │   │   ├── CommitPairingQueue.tsx # Manual pairing with branch filter
+        │   │   ├── CommitPairingQueue.tsx # Manual pairing
         │   │   ├── CommitCard.tsx
         │   │   └── LocalGitStatus.tsx
         │   ├── data/
@@ -148,7 +147,7 @@ log_my_time/
 | `access_token` | Text | OAuth token (`repo` scope) |
 | `avatar_url` | String | Profile image URL |
 | `local_repo_path` | String (nullable) | Absolute path local clone |
-| `commit_poll_interval_minutes` | Integer | Poll interval in min (default: 5) |
+| `commit_poll_interval_minutes` | Integer | Poll interval min (default: 5) |
 
 ### `GithubRepository`
 | Field | Type | Description |
@@ -201,7 +200,6 @@ log_my_time/
 ## ⚡ Key Business Logic
 
 ### Commit Detection & Pairing Flow
-
 1. Auto pairing disabled `pairing_service.py`.
 2. Timelogs default `commit = None` explicit `project`.
 3. Routing endpoints send `project` + `commit` frontend.
@@ -222,7 +220,6 @@ log_my_time/
 ---
 
 ## 🎨 UI & Layout
-
 - **Theme**: Dark mode, Oklch palette CSS variables (`--bg-gradient`, `--card-bg`, `--card-border`, `--primary`), glassmorphism.
 - **Dashboard Grid**:
   1. **Col 1** — `LoggingCard` + `TimerDial`: repo select, task input, SVG timer, controls, steppers (+15m, +30m, +60m).
@@ -233,18 +230,18 @@ log_my_time/
 
 ---
 
-## 📜 Development & Engineering Rules
+## 📜 Development Rules
 
 ### 1. General Principles
-- **Preserve docstrings**: Keep existing comments unless logic changes.
-- **Prompt Clarification**: Ask clarifying questions when prompts ambiguous before execution.
+- **Preserve docstrings**: Keep comments unless logic changes.
+- **Prompt Clarification**: Ask if prompts ambiguous before execution.
 - **Modularity**:
-  - Routers handle HTTP concerns only.
-  - Business logic `services/`.
-  - Pydantic schemas `schemas/`.
-  - ORM models `models/` (one model per file).
+  - Routers: HTTP concerns.
+  - Business logic: `services/`.
+  - Pydantic schemas: `schemas/`.
+  - ORM models: `models/` (one model per file).
 
-### 2. Backend Conventions (FastAPI + Python)
+### 2. Backend Conventions
 - Typed Pydantic response models all endpoints.
 - `async def` route handlers and I/O services.
 - GitHub API via `github_service.py` only.
@@ -252,14 +249,14 @@ log_my_time/
 - DB session via `Depends(get_db)`.
 - Try/except explicit rollback on DB/GitHub writes.
 
-### 3. Frontend Conventions (React + Vite + TypeScript)
+### 3. Frontend Conventions
 - **Strict TypeScript**: no `any`. Types `types/index.ts`.
 - **Vanilla CSS** `styles/` — no Tailwind, no CSS-in-JS.
 - API calls `api/` modules only.
 - Stateful logic `hooks/` — presentation-only components.
 - Dark-mode glassmorphism aesthetic.
 
-### 4. File Size & Single Responsibility
+### 4. File Size & Responsibility
 - **Max 200 lines per file** — refactor when limit reached.
 - Subcomponents `components/<feature>/` when >120 lines.
 - One router, service, model, hook per file.
@@ -277,4 +274,4 @@ log_my_time/
 ### 8. Change Logging & Execution Plans
 - Log changes `.obsidian/logs/<what-was-done>-YYYY-MM-DD.md`.
 - Use Obsidian links `[[path/to/file]]` referencing code.
-- **Plan Consolidation Rule**: Consolidate multi-step plan updates single plan log file `.obsidian/logs/`.
+- **Plan Consolidation**: Consolidate multi-step plan updates single plan log file `.obsidian/logs/`.

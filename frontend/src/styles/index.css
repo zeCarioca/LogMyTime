@@ -7,8 +7,8 @@
   --palette-color-4: 20% 0.03 260;
 
   --bg-dark: oklch(var(--palette-color-3));
-  --card-bg: oklch(var(--palette-color-4) / 0.75);
-  --card-border: oklch(var(--palette-color-2) / 0.4);
+  --card-bg: oklch(var(--palette-color-4) / 1);
+  --card-border: oklch(var(--palette-color-2) / 0.8);
   --text-main: oklch(96% 0.01 260);
   /* Fixed neutral tone */
   --text-muted: oklch(70% 0.03 260);
@@ -562,62 +562,73 @@ body {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 0.5rem;
+  min-width: 500px;
 }
 
 .heatmap-y-axis {
   display: grid;
-  grid-template-rows: repeat(7, 14px);
+  grid-template-rows: repeat(7, 1fr);
   gap: 3px;
   font-size: 0.75rem;
   color: var(--text-muted);
   text-align: right;
   padding-right: 0.5rem;
-  margin-top: 17px;
-  /* Align with cells below x-axis */
+  margin-top: 1.25rem;
 }
 
 .heatmap-y-axis span {
-  line-height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .heatmap-grid-wrapper {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  width: 100%;
 }
 
 .heatmap-x-axis {
   display: flex;
-  height: 14px;
+  height: 1.25rem;
   font-size: 0.75rem;
   color: var(--text-muted);
   position: relative;
+  width: 100%;
 }
 
 .heatmap-month-label {
   position: absolute;
+  top: 0;
 }
 
 .heatmap-cells {
   display: grid;
-  grid-template-rows: repeat(7, 14px);
+  grid-template-rows: repeat(7, 1fr);
   grid-auto-flow: column;
-  grid-auto-columns: 14px;
+  grid-auto-columns: 1fr;
   gap: 3px;
+  width: 100%;
 }
 
 .heatmap-cell {
-  width: 14px;
-  height: 14px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
   border-radius: 3px;
   cursor: pointer;
   transition: transform 0.1s, background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
-.heatmap-cell:hover {
+.heatmap-cell:hover, .heatmap-cell.selected-cell {
   transform: scale(1.15);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
   z-index: 10;
+}
+
+.heatmap-cell.selected-cell {
+  border: 1px solid var(--text-main);
 }
 
 /* Discrete Colors */
