@@ -296,25 +296,13 @@ class AnalyticsService:
 
         # 2. Fetch Aggregated DB Data via ORM Abstractions
         from models.database import date_trunc_custom, string_agg_custom
-        from sqlalchemy import case
         
         query = db.query(
             date_trunc_custom(level, TimeEntry.created_at).label('bucket'),
             func.sum(TimeEntry.duration_seconds).label('total_sec'),
             string_agg_custom(TimeEntry.commit_sha).label('shas'),
-            string_agg_custom(GithubRepository.full_name).label('repos'),
-            string_agg_custom(
-                case(
-                    (TimeEntry.commit_sha.isnot(None), func.coalesce(CommitLink.commit_message, BranchCommit.message, "No message")),
-                    else_=None
-                ),
-                "'|||'"
-            ).label('messages')
-        ).join(GithubRepository).outerjoin(
-            CommitLink, CommitLink.commit_sha == TimeEntry.commit_sha
-        ).outerjoin(
-            BranchCommit, BranchCommit.commit_sha == TimeEntry.commit_sha
-        ).filter(GithubRepository.user_id == user.id)
+            string_agg_custom(GithubRepository.full_name).label('repos')
+        ).join(GithubRepository).filter(GithubRepository.user_id == user.id)
         
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
@@ -323,7 +311,8 @@ class AnalyticsService:
             
         results = query.group_by('bucket').all()
         
-        # 3. Map to Buckets
+        # 3. Map to Buckets and Collect Unique SHAs
+        all_unique_shas = set()
         for r in results:
             bucket = r.bucket
             if not bucket or bucket not in timeline:
@@ -332,29 +321,35 @@ class AnalyticsService:
             t = timeline[bucket]
             t["sec"] += r.total_sec or 0
             
-            sha_list = []
-            msg_list = []
-            
             if r.shas:
                 sha_list = str(r.shas).split(',')
                 for sha in sha_list:
                     if sha:
                         t["commits"].add(sha)
+                        all_unique_shas.add(sha)
+                        
             if r.repos:
                 for repo in str(r.repos).split(','):
                     if repo:
                         t["projects"].add(repo)
-                        
-            if r.messages:
-                msg_list = str(r.messages).split('|||')
-                
-            # Populate link_map internally from the joined messages
-            for i in range(min(len(sha_list), len(msg_list))):
-                if sha_list[i]:
-                    if "link_map" not in t:
-                        t["link_map"] = {}
-                    if msg_list[i]:
-                        t["link_map"][sha_list[i]] = msg_list[i]
+
+        # 3.5. Fetch Commit Messages for all unique SHAs
+        message_map = {}
+        if all_unique_shas:
+            sha_list = list(all_unique_shas)
+            # 1. Check CommitLink
+            links = db.query(CommitLink).filter(CommitLink.commit_sha.in_(sha_list)).all()
+            for l in links:
+                if l.commit_message:
+                    message_map[l.commit_sha] = l.commit_message
+
+            # 2. Check BranchCommit for any missing messages
+            missing_shas = [sha for sha in sha_list if sha not in message_map]
+            if missing_shas:
+                b_commits = db.query(BranchCommit).filter(BranchCommit.commit_sha.in_(missing_shas)).all()
+                for bc in b_commits:
+                    if bc.message:
+                        message_map[bc.commit_sha] = bc.message
 
         # 4. Format Response
         data_points = []
@@ -371,8 +366,7 @@ class AnalyticsService:
             
             if level == "day":
                 point.projects = list(t["projects"])
-                link_map = t.get("link_map", {})
-                point.commits = [{"sha": sha, "message": link_map.get(sha, "No message")} for sha in t["commits"]]
+                point.commits = [{"sha": sha, "message": message_map.get(sha, "No message")} for sha in t["commits"]]
                 
             data_points.append(point)
             

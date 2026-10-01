@@ -38,8 +38,8 @@ export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = R
       fontFamily: 'inherit',
       events: {
         dataPointSelection: (_event, _chartContext, config) => {
-          const idx = config.dataPointIndex;
-          if (idx >= 0 && idx < sorted.length) {
+          const idx = config?.dataPointIndex;
+          if (idx !== undefined && idx >= 0 && idx < sorted.length) {
             setPinnedCommit(sorted[idx]);
           }
         }

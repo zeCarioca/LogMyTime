@@ -48,13 +48,14 @@ export const TimeTrendsChart: React.FC<TimeTrendsChartProps> = React.memo(({ dat
       for (let i = 0; i < sorted.length; i += bucketSize) {
         const chunk = sorted.slice(i, i + bucketSize);
         const sumSec = chunk.reduce((acc, curr) => acc + curr.total_seconds, 0);
+        const avgSec = sumSec / chunk.length; // Average daily seconds in this chunk
         // Use the middle date of the chunk
         const midIndex = Math.floor(chunk.length / 2);
         const middleDateStr = chunk[midIndex].date;
         
         chartData.push({
           x: parseISO(middleDateStr).getTime(),
-          y: Number((sumSec / 3600).toFixed(2))
+          y: Number((avgSec / 3600).toFixed(2))
         });
       }
     } else {

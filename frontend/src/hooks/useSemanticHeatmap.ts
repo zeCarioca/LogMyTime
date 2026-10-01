@@ -6,19 +6,38 @@ export type ZoomLevel = 'year' | 'month' | 'week' | 'day';
 
 export function useSemanticHeatmap(dateStart?: string, dateEnd?: string) {
     const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('week');
-    const [heatmapData, setHeatmapData] = useState<HeatmapResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
+    
+    const [cache, setCache] = useState<Record<string, HeatmapResponse | null>>({});
+    const [loadingState, setLoadingState] = useState<Record<string, boolean>>({});
+
+    // Clear cache if date range changes
+    useEffect(() => {
+        setCache({});
+        setLoadingState({});
+    }, [dateStart, dateEnd]);
 
     useEffect(() => {
-        setIsLoading(true);
+        if (cache[zoomLevel] !== undefined || loadingState[zoomLevel]) {
+            return;
+        }
+
+        setLoadingState(prev => ({ ...prev, [zoomLevel]: true }));
+
         analyticsApi.getHeatmap(zoomLevel, dateStart, dateEnd)
-            .then((data) => setHeatmapData(data))
+            .then((data) => {
+                setCache(prev => ({ ...prev, [zoomLevel]: data }));
+            })
             .catch((err) => {
                 console.error("Failed to fetch semantic heatmap", err);
-                setHeatmapData(null);
+                setCache(prev => ({ ...prev, [zoomLevel]: null }));
             })
-            .finally(() => setIsLoading(false));
-    }, [zoomLevel, dateStart, dateEnd]);
+            .finally(() => {
+                setLoadingState(prev => ({ ...prev, [zoomLevel]: false }));
+            });
+    }, [zoomLevel, dateStart, dateEnd, cache, loadingState]);
+
+    const heatmapData = cache[zoomLevel] || null;
+    const isLoading = loadingState[zoomLevel] || (cache[zoomLevel] === undefined);
 
     return { zoomLevel, setZoomLevel, heatmapData, isLoading };
 }
