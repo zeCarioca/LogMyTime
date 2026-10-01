@@ -270,11 +270,13 @@ class AnalyticsService:
                 
         elif level == "month":
             # Week resolution
-            curr = curr - datetime.timedelta(days=curr.weekday()) # align to Monday
-            while curr <= end_dt + datetime.timedelta(days=7):
+            curr = start_dt - datetime.timedelta(days=start_dt.weekday()) # align to Monday
+            end_limit = end_dt + datetime.timedelta(days=7)
+            while curr <= end_limit:
                 bucket = curr.strftime('%Y-%W')
-                timeline[bucket] = {"ts": curr.strftime('%Y-%m-%dT00:00:00Z'), "sec": 0, "commits": set(), "projects": set()}
-                curr += datetime.timedelta(weeks=1)
+                if bucket not in timeline:
+                    timeline[bucket] = {"ts": curr.strftime('%Y-%m-%dT00:00:00Z'), "sec": 0, "commits": set(), "projects": set()}
+                curr += datetime.timedelta(days=1)
                 
         elif level == "week":
             # Day resolution
@@ -364,9 +366,8 @@ class AnalyticsService:
                 commit_count=len(t["commits"])
             )
             
-            if level == "day":
-                point.projects = list(t["projects"])
-                point.commits = [{"sha": sha, "message": message_map.get(sha, "No message")} for sha in t["commits"]]
+            point.projects = list(t["projects"])
+            point.commits = [{"sha": sha, "message": message_map.get(sha, "No message")} for sha in t["commits"]]
                 
             data_points.append(point)
             
