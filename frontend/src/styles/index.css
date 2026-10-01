@@ -31,6 +31,7 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   padding: 1.5rem;
+  transition: background-color 0.4s ease-out, color 0.4s ease-out;
 }
 
 .app-shell {
@@ -45,6 +46,7 @@ body {
   backdrop-filter: blur(12px);
   padding: 1.25rem;
   margin-bottom: 1rem;
+  transition: background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .card-title {
@@ -108,7 +110,7 @@ body {
   border-radius: var(--radius);
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: all 0.2s, background-color 0.4s ease-out, border-color 0.4s ease-out, color 0.4s ease-out;
 }
 
 .tab-button.active, .tab-button:hover {
@@ -119,7 +121,7 @@ body {
 
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 300px;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
 
@@ -135,7 +137,7 @@ body {
   font-weight: 600;
   cursor: pointer;
   border: none;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, background-color 0.4s ease-out, border-color 0.4s ease-out, color 0.4s ease-out;
 }
 
 .btn:hover {
@@ -169,6 +171,7 @@ body {
   border: 1px solid var(--card-border);
   border-radius: 8px;
   color: white;
+  transition: background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .duration-steppers-row {
@@ -199,6 +202,7 @@ body {
   fill: none;
   stroke: var(--card-border);
   stroke-width: 10;
+  transition: stroke 0.4s ease-out;
 }
 
 .timer-progress-circle {
@@ -206,7 +210,7 @@ body {
   stroke: var(--primary);
   stroke-width: 10;
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.5s ease;
+  transition: stroke-dashoffset 0.5s ease, stroke 0.4s ease-out;
 }
 
 .timer-display-content {
@@ -242,6 +246,7 @@ body {
   align-items: center;
   padding: 0.6rem 0;
   border-bottom: 1px solid var(--card-border);
+  transition: border-color 0.4s ease-out;
 }
 
 .repo-name { font-weight: 600; display: block; }
@@ -253,6 +258,7 @@ body {
   border-radius: 10px;
   padding: 0.8rem;
   margin-bottom: 0.8rem;
+  transition: background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .pairing-card-header {
@@ -273,10 +279,11 @@ body {
   gap: 0.5rem;
   align-items: center;
   font-size: 0.85rem;
-  background: rgba(255,255,255,0.05);
+  background: oklch(var(--palette-color-1) / 0.1);
   padding: 0.4rem 0.6rem;
   border-radius: 6px;
   margin-bottom: 0.6rem;
+  transition: background-color 0.4s ease-out;
 }
 
 .pairing-actions {
@@ -314,6 +321,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 280px;
+  transition: background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .panel-header {
@@ -359,19 +367,19 @@ body {
   padding: 0.5rem 0.6rem;
   border: 1px solid transparent;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.03);
+  background: oklch(var(--palette-color-1) / 0.05);
   margin-bottom: 0.4rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.15s ease, background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .panel-item:hover {
-  background: rgba(255, 255, 255, 0.07);
+  background: oklch(var(--palette-color-1) / 0.1);
   border-color: var(--card-border);
 }
 
 .panel-item.selected {
-  background: rgba(255, 255, 255, 0.12);
+  background: oklch(var(--palette-color-1) / 0.2);
   border-color: var(--primary);
 }
 
@@ -431,10 +439,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-  background: rgba(0, 0, 0, 0.2);
+  background: oklch(var(--palette-color-3) / 0.4);
   padding: 0.8rem;
   border-radius: 10px;
   border: 1px solid var(--card-border);
+  transition: background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .selection-summary {
@@ -448,10 +457,11 @@ body {
 
 .sha-code {
   font-family: monospace;
-  background: rgba(255, 255, 255, 0.1);
+  background: oklch(var(--palette-color-1) / 0.15);
   padding: 0.1rem 0.3rem;
   border-radius: 4px;
   color: var(--primary);
+  transition: background-color 0.4s ease-out;
 }
 
 .confirm-pairing-btn {
@@ -489,6 +499,7 @@ body {
   color: var(--text-main);
   padding: 0.3rem 0.6rem;
   border-radius: 6px;
+  transition: background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .github-heatmap {
@@ -543,7 +554,7 @@ body {
   height: 14px;
   border-radius: 3px;
   cursor: pointer;
-  transition: transform 0.1s;
+  transition: transform 0.1s, background-color 0.4s ease-out, border-color 0.4s ease-out;
 }
 
 .heatmap-cell:hover {

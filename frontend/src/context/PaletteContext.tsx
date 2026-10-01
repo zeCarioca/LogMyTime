@@ -58,12 +58,10 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
     setState(prev => ({ ...prev, currentPalette: palette }));
   }, [state.baseHue, state.profile, state.harmony]);
 
-  // Initial generation if empty
+  // Auto-generate whenever baseHue, profile, or harmony changes
   useEffect(() => {
-    if (state.currentPalette.length === 0) {
-      generate();
-    }
-  }, [state.currentPalette.length, generate]);
+    generate();
+  }, [generate]);
 
   const setBaseHue = (hue: number) => setState(prev => ({ ...prev, baseHue: hue }));
   const setProfile = (profile: PaletteProfile) => setState(prev => ({ ...prev, profile }));

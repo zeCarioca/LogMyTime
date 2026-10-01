@@ -24,7 +24,7 @@ export const TimerDial: React.FC<TimerDialProps> = ({
   const strokeDashoffset = circumference - progress * circumference;
 
   return (
-    <div className="timer-dial-container">
+    <div className="timer-dial-container card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <div className="svg-dial-wrapper" style={{ position: 'relative' }}>
         <svg className="timer-svg" viewBox="0 0 200 200">
           <circle className="timer-bg-circle" cx="100" cy="100" r={radius} />

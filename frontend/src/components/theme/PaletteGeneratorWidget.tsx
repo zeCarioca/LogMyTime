@@ -9,7 +9,7 @@ export const PaletteGeneratorWidget: React.FC = () => {
     baseHue, setBaseHue, 
     profile, setProfile, 
     harmony, setHarmony, 
-    currentPalette, generate,
+    currentPalette,
     savedPalettes, saveCurrentPalette, loadPalette, deletePalette
   } = usePaletteGenerator();
 
@@ -92,9 +92,6 @@ export const PaletteGeneratorWidget: React.FC = () => {
         </div>
       </div>
 
-      <button className="btn btn-primary" onClick={generate} style={{ width: '100%' }}>
-        Regenerate
-      </button>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
         <div style={{ display: 'flex', height: '50px', borderRadius: '8px', overflow: 'hidden' }}>
