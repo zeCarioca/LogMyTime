@@ -20,13 +20,12 @@ export const TimerDial: React.FC<TimerDialProps> = ({
   // SVG circular progress calculation
   const radius = 90;
   const circumference = 2 * Math.PI * radius;
-  const maxDuration = 3600; // 60 mins full ring
-  const progress = Math.min(1, seconds / maxDuration);
+  const progress = (seconds % 3600) / 3600;
   const strokeDashoffset = circumference - progress * circumference;
 
   return (
     <div className="timer-dial-container">
-      <div className="svg-dial-wrapper">
+      <div className="svg-dial-wrapper" style={{ position: 'relative' }}>
         <svg className="timer-svg" viewBox="0 0 200 200">
           <circle className="timer-bg-circle" cx="100" cy="100" r={radius} />
           <circle
