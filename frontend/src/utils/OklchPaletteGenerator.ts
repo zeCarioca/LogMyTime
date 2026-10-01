@@ -82,6 +82,62 @@ export class OklchPaletteGenerator {
     return `rgb(${r}, ${g}, ${b})`;
   }
   
+  public static hexToRgb(hex: string): Rgb {
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    return {
+      r: (num >> 16) / 255,
+      g: ((num >> 8) & 255) / 255,
+      b: (num & 255) / 255
+    };
+  }
+
+  public static srgbToLinear(c: number): number {
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+
+  public static linearSrgbToOklab({ r, g, b }: Rgb) {
+    const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+    const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+    const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+
+    const l_ = Math.cbrt(Math.max(0, l));
+    const m_ = Math.cbrt(Math.max(0, m));
+    const s_ = Math.cbrt(Math.max(0, s));
+
+    return {
+      L: 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_,
+      a: 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_,
+      b: 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_
+    };
+  }
+
+  public static oklabToOklch({ L, a, b }: { L: number, a: number, b: number }): Oklch {
+    const C = Math.sqrt(a * a + b * b);
+    const h = Math.atan2(b, a) * (180 / Math.PI);
+    return { l: L, c: C, h: this.wrapHue(h) };
+  }
+
+  public static hexToOklch(hex: string): Oklch {
+    const rgb = this.hexToRgb(hex);
+    const linear = {
+      r: this.srgbToLinear(rgb.r),
+      g: this.srgbToLinear(rgb.g),
+      b: this.srgbToLinear(rgb.b)
+    };
+    return this.oklabToOklch(this.linearSrgbToOklab(linear));
+  }
+
+  public static oklchToHex(oklch: Oklch): string {
+    const rgb = this.oklchToSrgb(oklch);
+    const toHex = (c: number) => {
+      const hex = Math.max(0, Math.min(255, Math.round(c * 255))).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+    return `#${toHex(rgb.r)}${toHex(rgb.g)}${toHex(rgb.b)}`.toUpperCase();
+  }
+
   public static formatOklch(oklch: Oklch): string {
     return `${Math.round(oklch.l * 100)}% ${oklch.c.toFixed(3)} ${Math.round(oklch.h)}`;
   }

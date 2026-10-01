@@ -33,7 +33,7 @@ const FUNNY_PHRASES = [
   "A wild bug appears!"
 ];
 
-const ColorSwatch: React.FC<{ color: any, idx: number, locked: boolean, toggleLock: () => void }> = ({ color, idx, locked, toggleLock }) => {
+const ColorSwatch: React.FC<{ color: any, idx: number, locked: boolean, toggleLock: () => void, openEditor: () => void }> = ({ color, idx, locked, toggleLock, openEditor }) => {
   const [hovered, setHovered] = React.useState(false);
   const isLight = color.l > 0.6;
   const iconColor = isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
@@ -41,7 +41,7 @@ const ColorSwatch: React.FC<{ color: any, idx: number, locked: boolean, toggleLo
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onClick={toggleLock}
+      onClick={openEditor}
       style={{
         flex: 1,
         backgroundColor: `oklch(${OklchPaletteGenerator.formatOklch(color)})`,
@@ -49,10 +49,11 @@ const ColorSwatch: React.FC<{ color: any, idx: number, locked: boolean, toggleLo
         cursor: 'pointer',
         position: 'relative'
       }}
-      title={`oklch(${OklchPaletteGenerator.formatOklch(color)}) - Click to ${locked ? 'unlock' : 'lock'}`}
+      title={`oklch(${OklchPaletteGenerator.formatOklch(color)}) - Click to edit, click lock to toggle`}
     >
       {(hovered || locked) && (
         <svg 
+           onClick={(e) => { e.stopPropagation(); toggleLock(); }}
            style={{ position: 'absolute', top: '4px', right: '4px', color: iconColor }} 
            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
         >
@@ -67,16 +68,84 @@ const ColorSwatch: React.FC<{ color: any, idx: number, locked: boolean, toggleLo
   );
 };
 
+const ColorEditorPopover: React.FC<{
+  index: number;
+  color: any;
+  onChange: (color: any) => void;
+  onClose: () => void;
+}> = ({ index, color, onChange, onClose }) => {
+  const [hexInput, setHexInput] = React.useState(OklchPaletteGenerator.oklchToHex(color));
+
+  React.useEffect(() => {
+    setHexInput(OklchPaletteGenerator.oklchToHex(color));
+  }, [color.l, color.c, color.h]);
+
+  const handleHexChange = (val: string) => {
+    setHexInput(val);
+    if (/^#[0-9A-Fa-f]{6}$/.test(val) || /^#[0-9A-Fa-f]{3}$/.test(val)) {
+      onChange(OklchPaletteGenerator.hexToOklch(val));
+    }
+  };
+
+  return (
+    <div className="card" style={{
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      marginTop: '10px',
+      width: '100%',
+      zIndex: 1010,
+      padding: '1rem',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '0.8rem',
+      boxShadow: '0 10px 30px rgba(0,0,0,0.8)'
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h4 style={{ margin: 0, fontSize: '0.9rem' }}>Edit Tone {index}</h4>
+        <button className="btn btn-xs btn-outline" onClick={onClose}>✕</button>
+      </div>
+
+      <div className="form-group" style={{ marginBottom: 0 }}>
+        <label style={{ fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
+          <span>Lightness</span> <span>{Math.round(color.l * 100)}%</span>
+        </label>
+        <input type="range" min="0" max="1" step="0.01" value={color.l} onChange={e => onChange({...color, l: Number(e.target.value)})} style={{width: '100%'}}/>
+      </div>
+
+      <div className="form-group" style={{ marginBottom: 0 }}>
+        <label style={{ fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
+          <span>Chroma</span> <span>{color.c.toFixed(2)}</span>
+        </label>
+        <input type="range" min="0" max="0.4" step="0.01" value={color.c} onChange={e => onChange({...color, c: Number(e.target.value)})} style={{width: '100%'}}/>
+      </div>
+
+      <div className="form-group" style={{ marginBottom: 0 }}>
+        <label style={{ fontSize: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
+          <span>Hue</span> <span>{Math.round(color.h)}°</span>
+        </label>
+        <input type="range" min="0" max="360" step="1" value={color.h} onChange={e => onChange({...color, h: Number(e.target.value)})} style={{width: '100%'}}/>
+      </div>
+
+      <div className="form-group" style={{ marginBottom: 0, marginTop: '0.5rem' }}>
+        <label style={{ fontSize: '0.75rem' }}>HEX Code</label>
+        <input type="text" className="form-control" value={hexInput} onChange={e => handleHexChange(e.target.value)} style={{ fontFamily: 'monospace', padding: '0.3rem' }}/>
+      </div>
+    </div>
+  );
+};
+
 export const PaletteGeneratorWidget: React.FC = () => {
   const [saveName, setSaveName] = React.useState('');
   const [randomText, setRandomText] = React.useState(() => FUNNY_PHRASES[Math.floor(Math.random() * FUNNY_PHRASES.length)]);
+  const [activeEditorIndex, setActiveEditorIndex] = React.useState<number | null>(null);
   const {
     isOpen, toggleWidget,
     baseHue, setBaseHue,
     profile, setProfile,
     harmony, setHarmony,
     currentPalette,
-    lockedColors, toggleColorLock,
+    lockedColors, toggleColorLock, setSpecificColor,
     savedPalettes, saveCurrentPalette, loadPalette, deletePalette
   } = usePaletteGenerator();
 
@@ -181,7 +250,7 @@ export const PaletteGeneratorWidget: React.FC = () => {
         {randomText}
       </button>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.5rem', position: 'relative' }}>
         <div style={{ display: 'flex', height: '50px', borderRadius: '8px', overflow: 'hidden' }}>
           {currentPalette.map((color, idx) => (
             <ColorSwatch 
@@ -190,6 +259,7 @@ export const PaletteGeneratorWidget: React.FC = () => {
               idx={idx} 
               locked={lockedColors[idx]} 
               toggleLock={() => toggleColorLock(idx)} 
+              openEditor={() => setActiveEditorIndex(activeEditorIndex === idx ? null : idx)}
             />
           ))}
         </div>
@@ -198,6 +268,15 @@ export const PaletteGeneratorWidget: React.FC = () => {
             <span key={idx}>L:{Math.round(color.l * 100)} C:{color.c.toFixed(2)}</span>
           ))}
         </div>
+
+        {activeEditorIndex !== null && currentPalette[activeEditorIndex] && (
+          <ColorEditorPopover 
+            index={activeEditorIndex}
+            color={currentPalette[activeEditorIndex]}
+            onChange={(c) => setSpecificColor(activeEditorIndex, c)}
+            onClose={() => setActiveEditorIndex(null)}
+          />
+        )}
       </div>
 
       <div style={{ marginTop: '1rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem' }}>
@@ -208,6 +287,12 @@ export const PaletteGeneratorWidget: React.FC = () => {
             placeholder="Palette Name"
             value={saveName}
             onChange={(e) => setSaveName(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                saveCurrentPalette(saveName);
+                setSaveName('');
+              }
+            }}
             className="form-control"
             style={{ flex: 1, padding: '0.4rem' }}
           />

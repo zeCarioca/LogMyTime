@@ -22,6 +22,7 @@ interface PaletteContextType extends PaletteState {
   setProfile: (profile: PaletteProfile) => void;
   setHarmony: (harmony: HarmonyType) => void;
   toggleColorLock: (index: number) => void;
+  setSpecificColor: (index: number, color: Oklch) => void;
   generate: () => void;
   toggleWidget: () => void;
   saveCurrentPalette: (name: string) => void;
@@ -96,6 +97,17 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
       return { ...prev, lockedColors: newLocks };
     });
   };
+  const setSpecificColor = (index: number, color: Oklch) => {
+    setState(prev => {
+      const newPalette = [...prev.currentPalette];
+      newPalette[index] = color;
+      
+      const newLocks = [...(prev.lockedColors ?? [false, false, false, false, false])];
+      newLocks[index] = true;
+
+      return { ...prev, currentPalette: newPalette, lockedColors: newLocks };
+    });
+  };
   const toggleWidget = () => setState(prev => ({ ...prev, isOpen: !prev.isOpen }));
 
   const saveCurrentPalette = (name: string) => {
@@ -145,6 +157,7 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
       setProfile,
       setHarmony,
       toggleColorLock,
+      setSpecificColor,
       generate,
       toggleWidget,
       saveCurrentPalette,
