@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { analyticsApi } from '../api/analytics';
 import { HeatmapResponse } from '../types';
 
-export type ZoomLevel = 'month' | 'day' | 'commit';
+export type ZoomLevel = 'year' | 'month' | 'week' | 'day';
 
 export function useSemanticHeatmap(dateStart?: string, dateEnd?: string) {
-    const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('day');
+    const [zoomLevel, setZoomLevel] = useState<ZoomLevel>('week');
     const [heatmapData, setHeatmapData] = useState<HeatmapResponse | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 

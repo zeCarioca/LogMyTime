@@ -156,10 +156,11 @@ export interface HeatmapDataPoint {
   total_duration_seconds: number;
   commit_count: number;
   commits?: Array<{ sha: string; message: string }> | null;
+  projects?: string[] | null;
 }
 
 export interface HeatmapResponse {
-  level: string;
+  level: 'year' | 'month' | 'week' | 'day';
   start_date: string | null;
   end_date: string | null;
   max_duration_seconds: number;

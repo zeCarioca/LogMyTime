@@ -235,7 +235,6 @@ class AnalyticsService:
                 
         elif level == "month":
             # Week resolution
-            # Align to Monday of the week
             curr = curr - datetime.timedelta(days=curr.weekday())
             while curr <= end_dt + datetime.timedelta(days=7):
                 bucket = curr.strftime('%Y-%W')
@@ -259,12 +258,22 @@ class AnalyticsService:
         else:
             raise ValueError(f"Unknown level: {level}")
 
-        # 2. Fetch Aggregated DB Data
+        # 2. Fetch Aggregated DB Data via SQLite GROUP BY
+        format_str = ""
+        if level == "year":
+            format_str = '%Y-%m'
+        elif level == "month":
+            format_str = '%Y-%W'
+        elif level == "week":
+            format_str = '%Y-%m-%d'
+        elif level == "day":
+            format_str = '%Y-%m-%d %H:00'
+
         query = db.query(
-            TimeEntry.created_at,
-            TimeEntry.duration_seconds,
-            TimeEntry.commit_sha,
-            GithubRepository.full_name
+            func.strftime(format_str, TimeEntry.created_at).label('bucket'),
+            func.sum(TimeEntry.duration_seconds).label('total_sec'),
+            func.group_concat(TimeEntry.commit_sha).label('shas'),
+            func.group_concat(GithubRepository.full_name).label('repos')
         ).join(GithubRepository).filter(GithubRepository.user_id == user.id)
         
         if date_start:
@@ -272,27 +281,26 @@ class AnalyticsService:
         if date_end:
             query = query.filter(func.date(TimeEntry.created_at) <= date_end)
             
-        entries = query.all()
+        results = query.group_by('bucket').all()
         
         # 3. Map to Buckets
-        for e in entries:
-            bucket = None
-            if level == "year":
-                bucket = e.created_at.strftime('%Y-%m')
-            elif level == "month":
-                bucket = e.created_at.strftime('%Y-%W')
-            elif level == "week":
-                bucket = e.created_at.strftime('%Y-%m-%d')
-            elif level == "day":
-                bucket = e.created_at.strftime('%Y-%m-%d %H:00')
-                
-            if bucket in timeline:
-                t = timeline[bucket]
-                t["sec"] += e.duration_seconds
-                if e.commit_sha:
-                    t["commits"].add(e.commit_sha)
-                if e.full_name:
-                    t["projects"].add(e.full_name)
+        for r in results:
+            bucket = r.bucket
+            if not bucket or bucket not in timeline:
+                continue
+            
+            t = timeline[bucket]
+            t["sec"] += r.total_sec or 0
+            
+            if r.shas:
+                # group_concat returns comma separated list
+                for sha in str(r.shas).split(','):
+                    if sha:
+                        t["commits"].add(sha)
+            if r.repos:
+                for repo in str(r.repos).split(','):
+                    if repo:
+                        t["projects"].add(repo)
 
         # 4. Resolve Commit Messages for deepest level (day/hours)
         all_shas = set()

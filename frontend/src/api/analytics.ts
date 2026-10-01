@@ -28,7 +28,7 @@ export const analyticsApi = {
   getSessions: (start?: string, end?: string): Promise<SessionStatsOut> => 
     apiClient.get('/analytics/sessions', { params: { date_start: start, date_end: end } }).then(r => r.data),
     
-  getHeatmap: (level: string, start?: string, end?: string): Promise<HeatmapResponse> => 
+  getHeatmap: (level: 'year' | 'month' | 'week' | 'day', start?: string, end?: string): Promise<HeatmapResponse> => 
     apiClient.get('/analytics/heatmap', { params: { level, date_start: start, date_end: end } }).then(r => r.data),
     
   getKeywords: (start?: string, end?: string): Promise<KeywordFrequencyItem[]> => 
