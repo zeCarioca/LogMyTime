@@ -627,17 +627,17 @@ body {
 }
 
 .color-scale-1 {
-  background-color: oklch(var(--palette-color-4));
+  background-color: oklch(var(--heatmap-scale-1));
 }
 
 .color-scale-2 {
-  background-color: oklch(var(--palette-color-2));
+  background-color: oklch(var(--heatmap-scale-2));
 }
 
 .color-scale-3 {
-  background-color: oklch(var(--palette-color-1));
+  background-color: oklch(var(--heatmap-scale-3));
 }
 
 .color-scale-4 {
-  background-color: oklch(var(--palette-color-0));
+  background-color: oklch(var(--heatmap-scale-4));
 }

@@ -147,8 +147,27 @@ export const PaletteProvider: React.FC<{ children: ReactNode }> = ({ children })
           OklchPaletteGenerator.formatOklch(color)
         );
       });
+
+      // Monochromatic Heatmap Scale (Interpolate between Card Bg [4] and Primary Accent [0])
+      const c0 = state.currentPalette[0];
+      const c4 = state.currentPalette[4];
+      if (c0 && c4) {
+        for (let i = 1; i <= 4; i++) {
+          const factor = i / 4;
+          const heatmapColor = {
+            l: c4.l + (c0.l - c4.l) * factor,
+            c: c4.c + (c0.c - c4.c) * factor,
+            h: c0.h // strictly follow primary hue
+          };
+          document.documentElement.style.setProperty(
+            `--heatmap-scale-${i}`,
+            OklchPaletteGenerator.formatOklch(heatmapColor)
+          );
+        }
+      }
     }
-  }, [state.currentPalette]);
+    document.documentElement.style.setProperty('--glass-alpha', (state.glassAlpha ?? 0.75).toString());
+  }, [state.currentPalette, state.glassAlpha]);
 
   return (
     <PaletteContext.Provider value={{

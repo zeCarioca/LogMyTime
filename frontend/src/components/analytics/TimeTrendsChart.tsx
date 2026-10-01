@@ -3,6 +3,8 @@ import Chart from 'react-apexcharts';
 import ApexCharts from 'apexcharts';
 import { DailyBreakdownItem } from '../../types';
 import { parseISO } from 'date-fns';
+import { usePaletteGenerator } from '../../context/PaletteContext';
+import { OklchPaletteGenerator } from '../../utils/OklchPaletteGenerator';
 
 interface TimeTrendsChartProps {
   data: DailyBreakdownItem[];
@@ -13,6 +15,12 @@ export const TimeTrendsChart: React.FC<TimeTrendsChartProps> = React.memo(({ dat
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [useSineWave, setUseSineWave] = useState(false);
   const CHART_ID = 'time-trends-chart';
+  const { currentPalette } = usePaletteGenerator();
+  
+  const primaryHex = useMemo(() => {
+    if (!currentPalette || currentPalette.length === 0) return '#3b82f6';
+    return OklchPaletteGenerator.oklchToHex(currentPalette[0]);
+  }, [currentPalette]);
 
   const series = useMemo(() => {
     if (useSineWave) {
@@ -150,7 +158,7 @@ export const TimeTrendsChart: React.FC<TimeTrendsChartProps> = React.memo(({ dat
       }
     },
     theme: { mode: 'dark' },
-    colors: ['#3b82f6'],
+    colors: [primaryHex],
     fill: {
       type: 'gradient',
       gradient: {

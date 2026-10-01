@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import Chart from 'react-apexcharts';
 import { CommitCorrelationItem } from '../../types';
 import { format, parseISO } from 'date-fns';
+import { usePaletteGenerator } from '../../context/PaletteContext';
+import { OklchPaletteGenerator } from '../../utils/OklchPaletteGenerator';
 
 interface PairingCorrelationChartProps {
   data: CommitCorrelationItem[];
@@ -9,6 +11,12 @@ interface PairingCorrelationChartProps {
 }
 
 export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = React.memo(({ data, isLoading }) => {
+  const { currentPalette } = usePaletteGenerator();
+  const primaryHex = useMemo(() => {
+    if (!currentPalette || currentPalette.length === 0) return '#10b981';
+    return OklchPaletteGenerator.oklchToHex(currentPalette[0]);
+  }, [currentPalette]);
+
   const [pinnedCommit, setPinnedCommit] = useState<CommitCorrelationItem | null>(null);
 
   const safeData = Array.isArray(data) ? data : [];
@@ -46,7 +54,7 @@ export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = R
       }
     },
     theme: { mode: 'dark' },
-    colors: ['#10b981'],
+    colors: [primaryHex],
     plotOptions: {
       bar: {
         borderRadius: 4,
