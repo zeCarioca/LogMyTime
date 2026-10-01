@@ -23,7 +23,6 @@ export interface AnalyticsData {
   keywords: KeywordFrequencyItem[];
   pairing: PairingCoverageOut | null;
   insights: InsightsOut | null;
-  goal: AnalyticsGoal | null;
 }
 
 export const useAnalytics = () => {
@@ -41,32 +40,29 @@ export const useAnalytics = () => {
     keywords: [],
     pairing: null,
     insights: null,
-    goal: null,
   });
+  
+  const [goal, setGoal] = useState<AnalyticsGoal | null>(null);
 
   const fetchAllData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
       const { start, end } = dateRange;
-      const [
-        daily, weekly, monthly, perCommit, sessions, heatmap, keywords, pairing, insights, goal
-      ] = await Promise.all([
-        analyticsApi.getDaily(start, end),
-        analyticsApi.getWeekly(start, end),
-        analyticsApi.getMonthly(start, end),
-        analyticsApi.getPerCommit(start, end),
-        analyticsApi.getSessions(start, end),
-        analyticsApi.getHeatmap("day", start, end),
-        analyticsApi.getKeywords(start, end),
-        analyticsApi.getPairing(start, end),
-        analyticsApi.getInsights(start, end),
-        analyticsApi.getGoal(), // Goal doesn't usually depend on date range, but we fetch it here
-      ]);
+      const summary = await analyticsApi.getDashboardSummary(start, end);
 
       setData({
-        daily, weekly, monthly, perCommit, sessions, heatmap, keywords, pairing, insights, goal
+        daily: summary.daily,
+        weekly: summary.weekly,
+        monthly: summary.monthly,
+        perCommit: summary.perCommit,
+        sessions: summary.sessions,
+        heatmap: null, // Fetched independently by ActivityHeatmap
+        keywords: summary.keywords,
+        pairing: summary.pairing,
+        insights: summary.insights,
       });
+      setGoal(summary.goal);
     } catch (err: any) {
       console.error("Failed to load analytics data", err);
       setError("Failed to load analytics data. Please try again.");
@@ -82,7 +78,7 @@ export const useAnalytics = () => {
   const updateGoal = async (seconds: number) => {
     try {
       const newGoal = await analyticsApi.updateGoal(seconds);
-      setData(prev => ({ ...prev, goal: newGoal }));
+      setGoal(newGoal);
       return true;
     } catch (err) {
       console.error("Failed to update goal", err);
@@ -96,6 +92,7 @@ export const useAnalytics = () => {
     isLoading,
     error,
     data,
+    goal,
     refresh: fetchAllData,
     updateGoal
   };

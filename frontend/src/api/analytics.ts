@@ -13,6 +13,9 @@ import {
 } from '../types';
 
 export const analyticsApi = {
+  getDashboardSummary: (start?: string, end?: string): Promise<any> =>
+    apiClient.get('/analytics/dashboard-summary', { params: { date_start: start, date_end: end } }).then(r => r.data),
+
   getDaily: (start?: string, end?: string): Promise<DailyBreakdownItem[]> => 
     apiClient.get('/analytics/daily', { params: { date_start: start, date_end: end } }).then(r => r.data),
     

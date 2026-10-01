@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { DatePickerGroup, InsightsTicker, ActivityHeatmap, TimeTrendsChart, PairingCorrelationChart, KPICards, WeeklyGoalWidget } from '../components';
 import { analyticsApi } from '../api/analytics';
 
 export const AnalyticsPage: React.FC = () => {
-  const { dateRange, setDateRange, isLoading, error, data, refresh, updateGoal } = useAnalytics();
+  const { dateRange, setDateRange, isLoading, error, data, goal, refresh, updateGoal } = useAnalytics();
+  const [activeChartTab, setActiveChartTab] = useState<'trends' | 'correlation'>('trends');
 
   // Temporary console.log to use the variables and avoid TS6133 until we build the UI
-  console.log('Analytics loaded:', { dateRange, data, updateGoal });
+  console.log('Analytics loaded:', { dateRange, data, goal, updateGoal });
 
   const handleExportJson = async () => {
     try {
@@ -72,13 +73,48 @@ export const AnalyticsPage: React.FC = () => {
           {/* KPIs and Goal Widget */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
             <KPICards sessions={data.sessions} pairing={data.pairing} isLoading={isLoading} />
-            <WeeklyGoalWidget goal={data.goal} weeklyData={Array.isArray(data.weekly) ? data.weekly : []} onUpdateGoal={updateGoal} />
+            <WeeklyGoalWidget goal={goal} weeklyData={Array.isArray(data.weekly) ? data.weekly : []} onUpdateGoal={updateGoal} />
           </div>
 
-          {/* Trends and Correlation */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-            <TimeTrendsChart data={data.daily} isLoading={isLoading} />
-            <PairingCorrelationChart data={data.perCommit} isLoading={isLoading} />
+          {/* Trends and Correlation Tabs (Lazy Loading to prevent thread lock) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid var(--card-border)', paddingBottom: '0.5rem' }}>
+              <button 
+                onClick={() => setActiveChartTab('trends')}
+                style={{
+                  padding: '0.5rem 1.5rem',
+                  background: activeChartTab === 'trends' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
+                  border: '1px solid',
+                  borderColor: activeChartTab === 'trends' ? 'var(--primary)' : 'var(--card-border)',
+                  color: activeChartTab === 'trends' ? 'var(--primary)' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontWeight: 600
+                }}
+              >
+                📈 Time Trends
+              </button>
+              <button 
+                onClick={() => setActiveChartTab('correlation')}
+                style={{
+                  padding: '0.5rem 1.5rem',
+                  background: activeChartTab === 'correlation' ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+                  border: '1px solid',
+                  borderColor: activeChartTab === 'correlation' ? '#10b981' : 'var(--card-border)',
+                  color: activeChartTab === 'correlation' ? '#10b981' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontWeight: 600
+                }}
+              >
+                🔗 Commit Correlation
+              </button>
+            </div>
+            
+            <div style={{ minHeight: '350px' }}>
+              {activeChartTab === 'trends' && <TimeTrendsChart data={data.daily} isLoading={isLoading} />}
+              {activeChartTab === 'correlation' && <PairingCorrelationChart data={data.perCommit} isLoading={isLoading} />}
+            </div>
           </div>
         </div>
       )}

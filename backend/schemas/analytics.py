@@ -99,3 +99,14 @@ class AnalyticsExportRequest(BaseModel):
     date_start: str | None = None
     date_end: str | None = None
     repo_id: int | None = None
+
+class DashboardSummaryResponse(BaseModel):
+    daily: list[DailyBreakdownItem]
+    weekly: list[WeeklySummaryItem]
+    monthly: list[MonthlySummaryItem]
+    perCommit: list[CommitCorrelationItem]
+    sessions: SessionStatsOut | None
+    keywords: list[KeywordFrequencyItem]
+    pairing: PairingCoverageOut | None
+    insights: InsightsOut | None
+    goal: AnalyticsGoalOut | None

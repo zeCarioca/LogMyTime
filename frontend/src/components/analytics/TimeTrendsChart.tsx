@@ -9,7 +9,7 @@ interface TimeTrendsChartProps {
   isLoading: boolean;
 }
 
-export const TimeTrendsChart: React.FC<TimeTrendsChartProps> = ({ data, isLoading }) => {
+export const TimeTrendsChart: React.FC<TimeTrendsChartProps> = React.memo(({ data, isLoading }) => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [useSineWave, setUseSineWave] = useState(false);
   const CHART_ID = 'time-trends-chart';
@@ -39,12 +39,34 @@ export const TimeTrendsChart: React.FC<TimeTrendsChartProps> = ({ data, isLoadin
     // Sort chronologically
     const sorted = [...safeData].sort((a, b) => (a.date || '').localeCompare(b.date || ''));
     
-    return [{
-      name: 'Hours Logged',
-      data: sorted.map(d => ({
+    // Decimation logic for large datasets
+    let chartData: { x: number; y: number }[] = [];
+    
+    if (sorted.length > 180) {
+      // Aggregate into ~90 buckets
+      const bucketSize = Math.ceil(sorted.length / 90);
+      for (let i = 0; i < sorted.length; i += bucketSize) {
+        const chunk = sorted.slice(i, i + bucketSize);
+        const sumSec = chunk.reduce((acc, curr) => acc + curr.total_seconds, 0);
+        // Use the middle date of the chunk
+        const midIndex = Math.floor(chunk.length / 2);
+        const middleDateStr = chunk[midIndex].date;
+        
+        chartData.push({
+          x: parseISO(middleDateStr).getTime(),
+          y: Number((sumSec / 3600).toFixed(2))
+        });
+      }
+    } else {
+      chartData = sorted.map(d => ({
         x: parseISO(d.date).getTime(),
         y: Number((d.total_seconds / 3600).toFixed(2))
-      }))
+      }));
+    }
+
+    return [{
+      name: 'Hours Logged',
+      data: chartData
     }];
   }, [data, useSineWave]);
 
@@ -193,4 +215,4 @@ export const TimeTrendsChart: React.FC<TimeTrendsChartProps> = ({ data, isLoadin
       )}
     </div>
   );
-};
+});

@@ -20,7 +20,7 @@ function getOklchHeatColor(duration: number, maxDuration: number): string {
   return `oklch(${l}% ${c} ${h})`;
 }
 
-export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ dateRange }) => {
+export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = React.memo(({ dateRange }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 200 });
@@ -41,6 +41,10 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ dateRange }) =
   const [translateX, setTranslateX] = useState(0);
   const [hoveredPoint, setHoveredPoint] = useState<{ point: HeatmapDataPoint, x: number, y: number } | null>(null);
   const [visibleDateRange, setVisibleDateRange] = useState<string>('');
+
+  const [zoomAnchor, setZoomAnchor] = useState<{ timestamp: string, offsetX: number } | null>(null);
+  const lastZoomTime = useRef<number>(0);
+  const ZOOM_LEVELS: ZoomLevel[] = ['year', 'month', 'week', 'day'];
 
   // Resize Observer
   useEffect(() => {
@@ -96,6 +100,49 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ dateRange }) =
     }
   }, [heatmapData, translateX, dimensions, rows]);
 
+  const hasInitialPanned = useRef<boolean>(false);
+
+  // Reset pan state when zoom level changes so dropdown changes re-align
+  useEffect(() => {
+    hasInitialPanned.current = false;
+  }, [zoomLevel]);
+
+  // Apply zoom anchor or auto-pan to right after data loads
+  useEffect(() => {
+    if (!isLoading && heatmapData && dimensions.width > 0) {
+      if (zoomAnchor) {
+        const targetTime = new Date(zoomAnchor.timestamp).getTime();
+        let bestIndex = 0;
+        let minDiff = Infinity;
+        
+        for (let i = 0; i < heatmapData.data.length; i++) {
+          const t = new Date(heatmapData.data[i].timestamp).getTime();
+          const diff = Math.abs(t - targetTime);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestIndex = i;
+          }
+        }
+
+        const newCol = Math.floor(bestIndex / rows);
+        const newXWorld = newCol * (CELL_SIZE + GAP);
+        setTranslateX(zoomAnchor.offsetX - newXWorld);
+        setZoomAnchor(null);
+        hasInitialPanned.current = true;
+      } else if (!hasInitialPanned.current) {
+        // Initial load or dropdown change: pan to right edge to show most recent data
+        const totalCols = Math.ceil(heatmapData.data.length / rows);
+        const totalContentWidth = totalCols * (CELL_SIZE + GAP);
+        if (totalContentWidth > dimensions.width) {
+          setTranslateX(dimensions.width - totalContentWidth - CELL_SIZE);
+        } else {
+          setTranslateX(0);
+        }
+        hasInitialPanned.current = true;
+      }
+    }
+  }, [isLoading, heatmapData, zoomAnchor, rows, dimensions.width]);
+
   // Wheel and Mouse Event Listeners
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -104,15 +151,50 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ dateRange }) =
     let rafId: number | null = null;
 
     const handleWheel = (e: WheelEvent) => {
+      const isHorizontalPan = e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY);
+      const isZoom = e.ctrlKey || e.metaKey;
+
+      if (!isZoom && !isHorizontalPan) {
+        // Regular vertical scroll - let the browser scroll the page!
+        return;
+      }
+
       e.preventDefault();
 
-      if (rafId) return; // Basic throttle
+      // Semantic Zoom Action
+      if (isZoom) {
+        const now = Date.now();
+        if (now - lastZoomTime.current < 500 || isLoading) return;
+        lastZoomTime.current = now;
 
+        const zoomDir = e.deltaY > 0 ? -1 : 1; // wheel up (deltaY < 0) = zoom in (towards 'day')
+        const currentIdx = ZOOM_LEVELS.indexOf(zoomLevel);
+        const nextIdx = currentIdx + zoomDir;
+
+        if (nextIdx >= 0 && nextIdx < ZOOM_LEVELS.length) {
+          const nextZoom = ZOOM_LEVELS[nextIdx];
+          if (heatmapData && heatmapData.data.length > 0) {
+            const rect = canvas.getBoundingClientRect();
+            const offsetX = e.clientX - rect.left;
+            const x_world = offsetX - translateX;
+            const col = Math.floor(x_world / (CELL_SIZE + GAP));
+            const index = Math.max(0, Math.min(col * rows, heatmapData.data.length - 1));
+            const targetTimestamp = heatmapData.data[index].timestamp;
+            
+            setZoomAnchor({ timestamp: targetTimestamp, offsetX });
+            setZoomLevel(nextZoom);
+          }
+        }
+        return;
+      }
+
+      if (rafId) return; // Basic throttle
+      
       rafId = requestAnimationFrame(() => {
         // Only Panning
         const panDeltaX = e.shiftKey ? e.deltaY : e.deltaX;
         setTranslateX((prev) => prev - panDeltaX);
-
+        
         setHoveredPoint(null);
         rafId = null;
       });
@@ -345,4 +427,4 @@ export const ActivityHeatmap: React.FC<ActivityHeatmapProps> = ({ dateRange }) =
       </div>
     </div>
   );
-};
+});

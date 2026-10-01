@@ -40,34 +40,39 @@ class AnalyticsService:
 
     @staticmethod
     def get_daily_breakdown(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> list[DailyBreakdownItem]:
-        query = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        query = db.query(
+            func.date(TimeEntry.created_at).label("day_date"),
+            func.sum(TimeEntry.duration_seconds).label("total_sec"),
+            func.count(TimeEntry.id).label("entry_count"),
+            func.count(func.distinct(TimeEntry.repo_id)).label("repos_touched")
+        ).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
         if date_end:
             query = query.filter(func.date(TimeEntry.created_at) <= date_end)
             
-        entries = query.all()
-        daily = defaultdict(lambda: {"total_seconds": 0, "entry_count": 0, "repos": set()})
-        for entry in entries:
-            date_str = entry.created_at.date().isoformat()
-            daily[date_str]["total_seconds"] += entry.total_seconds
-            daily[date_str]["entry_count"] += 1
-            daily[date_str]["repos"].add(entry.repo_id)
-            
-        result = []
-        for d, stats in sorted(daily.items()):
-            result.append(DailyBreakdownItem(
-                date=d,
-                total_seconds=stats["total_seconds"],
-                total_minutes=stats["total_seconds"] // 60,
-                entry_count=stats["entry_count"],
-                repos_touched=len(stats["repos"])
+        query = query.group_by(func.date(TimeEntry.created_at)).order_by(func.date(TimeEntry.created_at))
+        
+        results = query.all()
+        
+        output = []
+        for r in results:
+            if not r.day_date:
+                continue
+            sec = int(r.total_sec or 0)
+            output.append(DailyBreakdownItem(
+                date=r.day_date,
+                total_seconds=sec,
+                total_minutes=sec / 60.0,
+                entry_count=int(r.entry_count or 0),
+                repos_touched=int(r.repos_touched or 0)
             ))
-        return result
+        return output
     
     @staticmethod
-    def get_weekly_summaries(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> list[WeeklySummaryItem]:
-        daily = AnalyticsService.get_daily_breakdown(db, user, date_start, date_end)
+    def get_weekly_summaries(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None, precomputed_daily: list[DailyBreakdownItem] | None = None) -> list[WeeklySummaryItem]:
+        daily = precomputed_daily if precomputed_daily is not None else AnalyticsService.get_daily_breakdown(db, user, date_start, date_end)
         weekly = defaultdict(lambda: {"total_seconds": 0, "entry_count": 0})
         
         for d in daily:
@@ -104,8 +109,8 @@ class AnalyticsService:
         return result
     
     @staticmethod
-    def get_monthly_summaries(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> list[MonthlySummaryItem]:
-        daily = AnalyticsService.get_daily_breakdown(db, user, date_start, date_end)
+    def get_monthly_summaries(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None, precomputed_daily: list[DailyBreakdownItem] | None = None) -> list[MonthlySummaryItem]:
+        daily = precomputed_daily if precomputed_daily is not None else AnalyticsService.get_daily_breakdown(db, user, date_start, date_end)
         monthly = defaultdict(lambda: {"total_seconds": 0, "entry_count": 0})
         
         for d in daily:
@@ -131,17 +136,31 @@ class AnalyticsService:
         return result
     
     @staticmethod
-    def get_per_commit_breakdown(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> list[CommitCorrelationItem]:
-        query = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id).filter(TimeEntry.commit_sha.isnot(None))
+    def get_per_commit_breakdown(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None, limit: int | None = None) -> list[CommitCorrelationItem]:
+        query = db.query(
+            TimeEntry.commit_sha,
+            func.sum(TimeEntry.duration_seconds).label('total_sec'),
+            func.count(TimeEntry.id).label('entry_count'),
+            func.max(TimeEntry.created_at).label('last_date'),
+            GithubRepository.full_name.label('repo_name')
+        ).join(GithubRepository).filter(
+            GithubRepository.user_id == user.id,
+            TimeEntry.commit_sha.isnot(None)
+        )
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
         if date_end:
             query = query.filter(func.date(TimeEntry.created_at) <= date_end)
             
-        entries = query.all()
+        query = query.group_by(TimeEntry.commit_sha, GithubRepository.full_name)
+        query = query.order_by(func.sum(TimeEntry.duration_seconds).desc())
+        
+        if limit:
+            query = query.limit(limit)
+            
+        results = query.all()
 
-        # Build message lookup map from CommitLink and BranchCommit
-        commit_shas = [e.commit_sha for e in entries if e.commit_sha]
+        commit_shas = [r.commit_sha for r in results]
         message_map = {}
         if commit_shas:
             # 1. Check CommitLink
@@ -158,54 +177,70 @@ class AnalyticsService:
                     if bc.message:
                         message_map[bc.commit_sha] = bc.message
 
-        commits = defaultdict(lambda: {"seconds": 0, "count": 0, "msg": "", "repo": "", "date": ""})
-        for e in entries:
-            c = commits[e.commit_sha]
-            c["seconds"] += e.total_seconds
-            c["count"] += 1
-            if not c["msg"]:
-                c["msg"] = e.commit_message or message_map.get(e.commit_sha) or "No message"
-                c["repo"] = e.repository.full_name
-                c["date"] = e.created_at.isoformat()
-                
-        result = []
-        for sha, data in commits.items():
-            result.append(CommitCorrelationItem(
-                commit_sha=sha,
-                commit_message=data["msg"],
-                total_seconds_logged=data["seconds"],
-                entry_count=data["count"],
-                repo_name=data["repo"],
-                commit_date=data["date"],
+        output = []
+        for r in results:
+            output.append(CommitCorrelationItem(
+                commit_sha=r.commit_sha,
+                commit_message=message_map.get(r.commit_sha) or "No message",
+                total_seconds_logged=r.total_sec,
+                entry_count=r.entry_count,
+                repo_name=r.repo_name,
+                commit_date=r.last_date.isoformat() if r.last_date else None,
                 same_day_commits=0
             ))
-        return result
+        return output
     
     @staticmethod
     def get_session_stats(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> SessionStatsOut:
-        query = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        query = db.query(
+            func.avg(TimeEntry.duration_seconds).label("avg_sec"),
+            func.max(TimeEntry.duration_seconds).label("max_sec"),
+            func.min(TimeEntry.duration_seconds).label("min_sec"),
+            func.count(TimeEntry.id).label("total")
+        ).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
         if date_end:
             query = query.filter(func.date(TimeEntry.created_at) <= date_end)
-        
-        entries = query.all()
-        if not entries:
+            
+        res = query.first()
+        total = int(res.total or 0)
+        if total == 0:
             return SessionStatsOut(avg_session_seconds=0.0, median_session_seconds=0.0, max_session_seconds=0, min_session_seconds=0, total_sessions=0, longest_session=None)
             
-        durations = sorted([e.total_seconds for e in entries])
-        total = len(durations)
-        median = durations[total//2] if total % 2 != 0 else (durations[total//2 - 1] + durations[total//2]) / 2.0
+        # Median is tricky in generic SQL without window functions.
+        offset = total // 2
+        median_query = db.query(TimeEntry.duration_seconds).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        if date_start:
+            median_query = median_query.filter(func.date(TimeEntry.created_at) >= date_start)
+        if date_end:
+            median_query = median_query.filter(func.date(TimeEntry.created_at) <= date_end)
+            
+        median_query = median_query.order_by(TimeEntry.duration_seconds)
         
-        longest = max(entries, key=lambda e: e.total_seconds)
+        if total % 2 != 0:
+            median_val = median_query.offset(offset).limit(1).scalar() or 0
+        else:
+            vals = [r[0] for r in median_query.offset(offset - 1).limit(2).all()]
+            median_val = sum(vals) / 2.0 if vals else 0
+            
+        # Get the longest session task details
+        longest_entry = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        if date_start:
+            longest_entry = longest_entry.filter(func.date(TimeEntry.created_at) >= date_start)
+        if date_end:
+            longest_entry = longest_entry.filter(func.date(TimeEntry.created_at) <= date_end)
+            
+        longest = longest_entry.order_by(TimeEntry.duration_seconds.desc()).first()
         
         return SessionStatsOut(
-            avg_session_seconds=sum(durations) / total,
-            median_session_seconds=median,
-            max_session_seconds=durations[-1],
-            min_session_seconds=durations[0],
+            avg_session_seconds=float(res.avg_sec or 0),
+            median_session_seconds=float(median_val),
+            max_session_seconds=int(res.max_sec or 0),
+            min_session_seconds=int(res.min_sec or 0),
             total_sessions=total,
-            longest_session={"task": longest.task_description, "date": longest.created_at.date().isoformat()}
+            longest_session={"task": longest.task_description, "date": longest.created_at.date().isoformat()} if longest else None
         )
     
     @staticmethod
@@ -224,7 +259,7 @@ class AnalyticsService:
         
         if level == "year":
             # Month resolution
-            curr = curr.replace(day=1) # align to start of month
+            curr = curr.replace(month=1, day=1) # align to Jan 1st
             while curr <= end_dt:
                 bucket = curr.strftime('%Y-%m')
                 timeline[bucket] = {"ts": f"{bucket}-01T00:00:00Z", "sec": 0, "commits": set(), "projects": set()}
@@ -235,7 +270,7 @@ class AnalyticsService:
                 
         elif level == "month":
             # Week resolution
-            curr = curr - datetime.timedelta(days=curr.weekday())
+            curr = curr - datetime.timedelta(days=curr.weekday()) # align to Monday
             while curr <= end_dt + datetime.timedelta(days=7):
                 bucket = curr.strftime('%Y-%W')
                 timeline[bucket] = {"ts": curr.strftime('%Y-%m-%dT00:00:00Z'), "sec": 0, "commits": set(), "projects": set()}
@@ -243,6 +278,7 @@ class AnalyticsService:
                 
         elif level == "week":
             # Day resolution
+            curr = curr - datetime.timedelta(days=curr.weekday()) # align to Monday
             while curr <= end_dt:
                 bucket = curr.strftime('%Y-%m-%d')
                 timeline[bucket] = {"ts": f"{bucket}T00:00:00Z", "sec": 0, "commits": set(), "projects": set()}
@@ -250,7 +286,7 @@ class AnalyticsService:
                 
         elif level == "day":
             # Hour resolution
-            curr = curr.replace(minute=0, second=0, microsecond=0)
+            curr = curr.replace(hour=0, minute=0, second=0, microsecond=0) # align to Midnight
             while curr <= end_dt:
                 bucket = curr.strftime('%Y-%m-%d %H:00')
                 timeline[bucket] = {"ts": curr.strftime('%Y-%m-%dT%H:%M:%SZ'), "sec": 0, "commits": set(), "projects": set()}
@@ -258,23 +294,27 @@ class AnalyticsService:
         else:
             raise ValueError(f"Unknown level: {level}")
 
-        # 2. Fetch Aggregated DB Data via SQLite GROUP BY
-        format_str = ""
-        if level == "year":
-            format_str = '%Y-%m'
-        elif level == "month":
-            format_str = '%Y-%W'
-        elif level == "week":
-            format_str = '%Y-%m-%d'
-        elif level == "day":
-            format_str = '%Y-%m-%d %H:00'
-
+        # 2. Fetch Aggregated DB Data via ORM Abstractions
+        from models.database import date_trunc_custom, string_agg_custom
+        from sqlalchemy import case
+        
         query = db.query(
-            func.strftime(format_str, TimeEntry.created_at).label('bucket'),
+            date_trunc_custom(level, TimeEntry.created_at).label('bucket'),
             func.sum(TimeEntry.duration_seconds).label('total_sec'),
-            func.group_concat(TimeEntry.commit_sha).label('shas'),
-            func.group_concat(GithubRepository.full_name).label('repos')
-        ).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+            string_agg_custom(TimeEntry.commit_sha).label('shas'),
+            string_agg_custom(GithubRepository.full_name).label('repos'),
+            string_agg_custom(
+                case(
+                    (TimeEntry.commit_sha.isnot(None), func.coalesce(CommitLink.commit_message, BranchCommit.message, "No message")),
+                    else_=None
+                ),
+                "'|||'"
+            ).label('messages')
+        ).join(GithubRepository).outerjoin(
+            CommitLink, CommitLink.commit_sha == TimeEntry.commit_sha
+        ).outerjoin(
+            BranchCommit, BranchCommit.commit_sha == TimeEntry.commit_sha
+        ).filter(GithubRepository.user_id == user.id)
         
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
@@ -292,34 +332,31 @@ class AnalyticsService:
             t = timeline[bucket]
             t["sec"] += r.total_sec or 0
             
+            sha_list = []
+            msg_list = []
+            
             if r.shas:
-                # group_concat returns comma separated list
-                for sha in str(r.shas).split(','):
+                sha_list = str(r.shas).split(',')
+                for sha in sha_list:
                     if sha:
                         t["commits"].add(sha)
             if r.repos:
                 for repo in str(r.repos).split(','):
                     if repo:
                         t["projects"].add(repo)
-
-        # 4. Resolve Commit Messages for deepest level (day/hours)
-        all_shas = set()
-        if level == "day":
-            for t in timeline.values():
-                all_shas.update(t["commits"])
+                        
+            if r.messages:
+                msg_list = str(r.messages).split('|||')
                 
-        link_map = {}
-        if all_shas:
-            links = db.query(CommitLink).filter(CommitLink.commit_sha.in_(list(all_shas))).all()
-            link_map = {l.commit_sha: l.commit_message for l in links}
-            
-            missing = all_shas - set(link_map.keys())
-            if missing:
-                bcs = db.query(BranchCommit).filter(BranchCommit.commit_sha.in_(list(missing))).all()
-                for bc in bcs:
-                    link_map[bc.commit_sha] = bc.message
+            # Populate link_map internally from the joined messages
+            for i in range(min(len(sha_list), len(msg_list))):
+                if sha_list[i]:
+                    if "link_map" not in t:
+                        t["link_map"] = {}
+                    if msg_list[i]:
+                        t["link_map"][sha_list[i]] = msg_list[i]
 
-        # 5. Format Response
+        # 4. Format Response
         data_points = []
         max_duration = 0
         
@@ -334,6 +371,7 @@ class AnalyticsService:
             
             if level == "day":
                 point.projects = list(t["projects"])
+                link_map = t.get("link_map", {})
                 point.commits = [{"sha": sha, "message": link_map.get(sha, "No message")} for sha in t["commits"]]
                 
             data_points.append(point)
@@ -375,15 +413,20 @@ class AnalyticsService:
     
     @staticmethod
     def get_pairing_coverage(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None) -> PairingCoverageOut:
-        query = db.query(TimeEntry).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        from sqlalchemy import case
+        query = db.query(
+            func.count(TimeEntry.id).label("total"),
+            func.sum(case((TimeEntry.commit_sha.isnot(None), 1), else_=0)).label("paired")
+        ).join(GithubRepository).filter(GithubRepository.user_id == user.id)
+        
         if date_start:
             query = query.filter(func.date(TimeEntry.created_at) >= date_start)
         if date_end:
             query = query.filter(func.date(TimeEntry.created_at) <= date_end)
-        
-        entries = query.all()
-        total = len(entries)
-        paired = sum(1 for e in entries if e.commit_sha)
+            
+        res = query.first()
+        total = int(res.total or 0)
+        paired = int(res.paired or 0)
         unpaired = total - paired
         pct = (paired / total * 100) if total > 0 else 0.0
         
@@ -398,3 +441,39 @@ class AnalyticsService:
             avg_timelogs_per_commit=0.0,
             avg_link_lag_hours=None
         )
+
+    @staticmethod
+    def get_dashboard_summary(db: Session, user: User, date_start: datetime.date | None, date_end: datetime.date | None):
+        from schemas.analytics import DashboardSummaryResponse, InsightsOut
+        from services.analytics_insights import AnalyticsInsights
+        
+        # 1. Fetch daily once and reuse for weekly/monthly
+        daily = AnalyticsService.get_daily_breakdown(db, user, date_start, date_end)
+        weekly = AnalyticsService.get_weekly_summaries(db, user, date_start, date_end, precomputed_daily=daily)
+        monthly = AnalyticsService.get_monthly_summaries(db, user, date_start, date_end, precomputed_daily=daily)
+        
+        # 2. Limit the heavy commits to top 10
+        per_commit = AnalyticsService.get_per_commit_breakdown(db, user, date_start, date_end, limit=10)
+        
+        # 3. Other async-like (though sync in python) aggregations
+        sessions = AnalyticsService.get_session_stats(db, user, date_start, date_end)
+        keywords = AnalyticsService.get_keyword_frequency(db, user, date_start, date_end)
+        pairing = AnalyticsService.get_pairing_coverage(db, user, date_start, date_end)
+        
+        goal = AnalyticsService.get_goal(db, user)
+        if not goal:
+            goal = AnalyticsService.set_goal(db, user, 0)
+            
+        insights = AnalyticsInsights.generate_insights(db, user, date_start, date_end)
+        
+        return {
+            "daily": daily,
+            "weekly": weekly,
+            "monthly": monthly,
+            "perCommit": per_commit,
+            "sessions": sessions,
+            "keywords": keywords,
+            "pairing": pairing,
+            "insights": {"insights": insights},
+            "goal": goal
+        }

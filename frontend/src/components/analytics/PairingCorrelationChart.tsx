@@ -8,7 +8,7 @@ interface PairingCorrelationChartProps {
   isLoading: boolean;
 }
 
-export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = ({ data, isLoading }) => {
+export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = React.memo(({ data, isLoading }) => {
   const [pinnedCommit, setPinnedCommit] = useState<CommitCorrelationItem | null>(null);
 
   const safeData = Array.isArray(data) ? data : [];
@@ -185,4 +185,4 @@ export const PairingCorrelationChart: React.FC<PairingCorrelationChartProps> = (
       )}
     </div>
   );
-};
+});

@@ -2,34 +2,34 @@
 **Date:** 2026-09-30
 
 ## Overview
-Successfully implemented the Semantic Zoom Activity Heatmap spanning across Backend, Frontend Logic, and UX Layers, entirely replacing the `react-apexcharts` dependency with a high-performance HTML5 `<canvas>`.
+Implement Semantic Zoom Activity Heatmap (Backend, Frontend, UX). Replace `react-apexcharts` with high-perf HTML5 `<canvas>`.
 
 ## Milestones Completed
 
 ### Milestone 1: Backend Aggregation
-- Updated Pydantic schemas in `[[backend/schemas/analytics.py]]` to handle hierarchical data models (`HeatmapResponse`, `HeatmapDataPoint`).
-- Completely refactored `AnalyticsService.get_heatmap` in `[[backend/services/analytics_service.py]]`.
-- Replaced Python iteration with optimized SQLite `func.sum()` and `func.strftime` aggregations to group data into `month`, `day`, and `commit` zoom levels.
-- Fixed a bug where a `@property` was passed to SQLAlchemy instead of the actual `duration_seconds` column.
+- Update Pydantic schemas `[[backend/schemas/analytics.py]]` for hierarchical data (`HeatmapResponse`, `HeatmapDataPoint`).
+- Refactor `AnalyticsService.get_heatmap` in `[[backend/services/analytics_service.py]]`.
+- Replace Python iteration with SQLite `func.sum()`, `func.strftime` aggregations (`month`, `day`, `commit` zoom levels).
+- Fix bug: passed `@property` to SQLAlchemy instead of `duration_seconds` col.
 
 ### Milestone 2: Canvas Foundation
-- Created the new `[[frontend/src/components/analytics/ActivityHeatmap.tsx]]` using `<canvas>`.
-- Implemented `ResizeObserver` for dynamic DPI-aware scaling.
-- Rewrote the color engine using native OKLCH interpolation based on duration intensity vs max duration.
-- Drew the 7-row geometric grid layout manually inside the 2D Context.
+- Create `[[frontend/src/components/analytics/ActivityHeatmap.tsx]]` via `<canvas>`.
+- Implement `ResizeObserver` for dynamic DPI scaling.
+- Rewrite color engine with native OKLCH interpolation (duration vs max).
+- Draw 7-row geometric grid in 2D context.
 
 ### Milestone 3: Interaction & Semantic Zoom
-- Created `[[frontend/src/hooks/useSemanticHeatmap.ts]]` to decouple zoom state and data fetching from the global analytics context.
-- Implemented scroll wheel event listeners to track `scale` (Ctrl+Scroll) and `translateX` (Scroll/Shift+Scroll).
-- Added logic to automatically step the `zoomLevel` up and down when the scale passes specific thresholds (`>1.5` or `<0.5`).
-- Inserted a robust test data generation script (`[[backend/seed_5_years.py]]`) to populate the SQLite database with 5 years of complex, highly-detailed edge cases (vacations, crunches, monolithic commits).
+- Create `[[frontend/src/hooks/useSemanticHeatmap.ts]]` to decouple zoom/fetch from global context.
+- Add wheel listeners for `scale` (Ctrl+Scroll), `translateX` (Scroll/Shift+Scroll).
+- Auto-step `zoomLevel` when scale passes thresholds (`>1.5`, `<0.5`).
+- Add test script `[[backend/seed_5_years.py]]` to generate 5 years edge cases.
 
 ### Milestone 4: Polish & Tooltips
-- Built a custom absolute-positioned tooltip inside `[[frontend/src/components/analytics/ActivityHeatmap.tsx]]`.
-- Implemented reverse-transform layout calculations to accurately map raw screen `offsetX/Y` to grid indices, despite zooming and panning translations.
-- Added smooth CSS opacity transitions.
-- Added dynamic date range indicator calculating the currently visible timeline on the edges of the viewport.
-- Handled edge cases like CSS `transform` trapping and provided fallback Zoom In `[+]` and Zoom Out `[-]` buttons for users without scroll wheels.
+- Build absolute tooltip inside `[[frontend/src/components/analytics/ActivityHeatmap.tsx]]`.
+- Implement reverse-transform to map screen `offsetX/Y` to grid indices across pan/zoom.
+- Add CSS opacity transitions.
+- Add dynamic visible date range edge indicator.
+- Handle CSS `transform` trapping. Add fallback `[+]` `[-]` buttons.
 
 ## Conclusion
-The heatmap is fully responsive, allows zooming down from 5 years of macroscopic month-level trends directly into individual commits, and runs flawlessly at 60fps on HTML5 canvas.
+Heatmap responsive, zoom from 5 years to commit level, 60fps HTML5 canvas.

@@ -16,10 +16,21 @@ from schemas.analytics import (
     KeywordFrequencyItem,
     PairingCoverageOut,
     InsightsOut,
-    AnalyticsExportRequest
+    AnalyticsExportRequest,
+    DashboardSummaryResponse
 )
 
 router = APIRouter(tags=["Analytics"])
+
+@router.get("/dashboard-summary", response_model=DashboardSummaryResponse)
+async def get_dashboard_summary(
+    date_start: datetime.date | None = Query(None),
+    date_end: datetime.date | None = Query(None),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    return AnalyticsService.get_dashboard_summary(db, user, date_start, date_end)
+
 
 @router.get("/daily", response_model=list[DailyBreakdownItem])
 async def get_daily(
