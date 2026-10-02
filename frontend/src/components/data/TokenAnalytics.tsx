@@ -70,7 +70,7 @@ export const TokenAnalytics: React.FC = () => {
   const lineChartOptions: ApexCharts.ApexOptions = {
     chart: { type: 'line', toolbar: { show: false }, background: 'transparent' },
     stroke: { width: [3, 0], curve: 'smooth' },
-    colors: ['#8b5cf6', '#3b82f6'],
+    colors: ['var(--primary)', 'var(--success)'],
     labels: data.time_series.map(ts => ts.date),
     xaxis: { type: 'datetime' },
     yaxis: [
@@ -92,15 +92,14 @@ export const TokenAnalytics: React.FC = () => {
 
   const heatmapOptions: ApexCharts.ApexOptions = {
     chart: { type: 'heatmap', toolbar: { show: false }, background: 'transparent' },
-    plotOptions: { heatmap: { shadeIntensity: 0.5, colorScale: { ranges: [{ from: 0, to: 100000, color: '#8b5cf6' }] } } },
+    plotOptions: { heatmap: { shadeIntensity: 0.5, colorScale: { ranges: [{ from: 0, to: 100000, color: 'var(--primary)' }] } } },
     dataLabels: { enabled: false },
     theme: { mode: 'dark' },
     xaxis: { type: 'category' }
   };
 
   return (
-    <div className="token-analytics-container" style={{ marginTop: '2rem' }}>
-      <h2 style={{ marginBottom: '1rem' }}>AI Assistance Analytics</h2>
+    <div className="token-analytics-container">
       
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
         <div className="card" style={{ flex: 1, textAlign: 'center' }}>
@@ -109,7 +108,7 @@ export const TokenAnalytics: React.FC = () => {
         </div>
         <div className="card" style={{ flex: 1, textAlign: 'center' }}>
           <h4 className="subtitle">Estimated Cost</h4>
-          <h2 style={{ color: '#10b981', marginTop: '0.5rem' }}>${estimatedCost}</h2>
+          <h2 style={{ color: 'var(--success)', marginTop: '0.5rem' }}>${estimatedCost}</h2>
           <small>Gemini 3.1 Pro Rates</small>
         </div>
       </div>

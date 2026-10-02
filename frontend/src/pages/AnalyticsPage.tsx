@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { DatePickerGroup, InsightsTicker, ActivityHeatmap, TimeTrendsChart, PairingCorrelationChart, KPICards, WeeklyGoalWidget } from '../components';
+import { TokenAnalytics } from '../components/data/TokenAnalytics';
 import { analyticsApi } from '../api/analytics';
 
 export const AnalyticsPage: React.FC = () => {
   const { dateRange, setDateRange, isLoading, error, data, goal, refresh, updateGoal } = useAnalytics();
-  const [activeChartTab, setActiveChartTab] = useState<'trends' | 'correlation'>('trends');
+  const [activeChartTab, setActiveChartTab] = useState<'trends' | 'correlation' | 'tokens'>('trends');
 
   // Temporary console.log to use the variables and avoid TS6133 until we build the UI
   console.log('Analytics loaded:', { dateRange, data, goal, updateGoal });
@@ -109,11 +110,27 @@ export const AnalyticsPage: React.FC = () => {
               >
                 🔗 Commit Correlation
               </button>
+              <button 
+                onClick={() => setActiveChartTab('tokens')}
+                style={{
+                  padding: '0.5rem 1.5rem',
+                  background: activeChartTab === 'tokens' ? 'rgba(139, 92, 246, 0.1)' : 'transparent',
+                  border: '1px solid',
+                  borderColor: activeChartTab === 'tokens' ? '#8b5cf6' : 'var(--card-border)',
+                  color: activeChartTab === 'tokens' ? '#8b5cf6' : 'var(--text-muted)',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  fontWeight: 600
+                }}
+              >
+                🤖 AI Tokens
+              </button>
             </div>
             
             <div style={{ minHeight: '350px' }}>
               {activeChartTab === 'trends' && <TimeTrendsChart data={data.daily} isLoading={isLoading} />}
               {activeChartTab === 'correlation' && <PairingCorrelationChart data={data.perCommit} isLoading={isLoading} />}
+              {activeChartTab === 'tokens' && <TokenAnalytics />}
             </div>
           </div>
         </div>
