@@ -51,7 +51,7 @@ export const TokenAnalytics: React.FC = () => {
 
   // KPIs
   const totalTokens = data.overall.total_tokens.toLocaleString();
-  const estimatedCost = ((data.overall.prompt_tokens / 1000000) * 1.25 + (data.overall.completion_tokens / 1000000) * 3.75).toFixed(2);
+  const estimatedCost = ((data.overall.prompt_tokens / 1000000) * 2.00 + (data.overall.completion_tokens / 1000000) * 12.00).toFixed(2);
 
   // Line Chart Data
   const seriesData = [
@@ -110,7 +110,7 @@ export const TokenAnalytics: React.FC = () => {
         <div className="card" style={{ flex: 1, textAlign: 'center' }}>
           <h4 className="subtitle">Estimated Cost</h4>
           <h2 style={{ color: '#10b981', marginTop: '0.5rem' }}>${estimatedCost}</h2>
-          <small>Gemini 1.5 Pro Rates</small>
+          <small>Gemini 3.1 Pro Rates</small>
         </div>
       </div>
 
