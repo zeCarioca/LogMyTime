@@ -4,9 +4,10 @@ import { GitGraphTree } from './GitGraphTree';
 interface HierarchyTreeProps {
   data: any;
   loading: boolean;
+  refreshCount: number;
 }
 
-export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ data, loading }) => {
+export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ data, loading, refreshCount }) => {
   const [viewModes, setViewModes] = useState<Record<number, 'list' | 'graph'>>({});
 
   if (loading) {
@@ -44,7 +45,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({ data, loading }) =
           </div>
 
           {mode === 'graph' ? (
-            <GitGraphTree repoId={repoNode.repository_id} repoName={repoNode.repository} />
+            <GitGraphTree repoId={repoNode.repository_id} repoName={repoNode.repository} refreshCount={refreshCount} />
           ) : (
             <>
               {repoNode.user_list.map((u: any) => (

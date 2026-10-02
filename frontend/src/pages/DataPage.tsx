@@ -6,6 +6,7 @@ import { useRepos } from '../hooks/useRepos';
 export const DataPage: React.FC = () => {
   const { activeRepos } = useRepos();
   const [selectedRepoId, setSelectedRepoId] = useState<number | ''>('');
+  const [refreshCount, setRefreshCount] = useState<number>(0);
   
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -23,7 +24,7 @@ export const DataPage: React.FC = () => {
       }
     };
     fetchData();
-  }, [selectedRepoId]);
+  }, [selectedRepoId, refreshCount]);
 
   const handleExportCsv = () => {
     window.location.href = dataApi.getExportCsvUrl(selectedRepoId !== '' ? Number(selectedRepoId) : undefined);
@@ -37,9 +38,14 @@ export const DataPage: React.FC = () => {
             <h2>Data & Hierarchy Explorer</h2>
             <p className="subtitle">View structured breakdown of repositories, users, commits, and timelogs</p>
           </div>
-          <button className="btn btn-primary" onClick={handleExportCsv}>
-            📥 Export CSV
-          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button className="btn btn-outline" onClick={() => setRefreshCount(c => c + 1)}>
+              🔄 Refresh
+            </button>
+            <button className="btn btn-primary" onClick={handleExportCsv}>
+              📥 Export CSV
+            </button>
+          </div>
         </div>
         
         <div className="repo-filter-container" style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem', borderTop: '1px solid var(--card-border)', paddingTop: '1rem' }}>
@@ -60,7 +66,7 @@ export const DataPage: React.FC = () => {
         </div>
       </div>
 
-      <HierarchyTree data={data} loading={loading} />
+      <HierarchyTree data={data} loading={loading} refreshCount={refreshCount} />
     </div>
   );
 };
