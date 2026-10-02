@@ -213,3 +213,72 @@ async def get_git_graph(
         'nodes': nodes
     }
 
+@router.get("/analytics/tokens")
+async def get_token_analytics(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from sqlalchemy import func
+    
+    # 1. Total tokens overall
+    totals = db.query(
+        func.sum(TimeEntry.total_prompt_tokens).label('prompt'),
+        func.sum(TimeEntry.total_completion_tokens).label('completion')
+    ).join(GithubRepository).filter(GithubRepository.user_id == user.id).first()
+    
+    total_prompt = int(totals.prompt or 0) if totals else 0
+    total_completion = int(totals.completion or 0) if totals else 0
+    
+    # 2. Aggregation per repo
+    repos = db.query(GithubRepository).filter(GithubRepository.user_id == user.id).all()
+    repo_stats = []
+    
+    for r in repos:
+        stats = db.query(
+            func.sum(TimeEntry.total_prompt_tokens).label('prompt'),
+            func.sum(TimeEntry.total_completion_tokens).label('completion'),
+            func.sum(TimeEntry.duration_seconds).label('seconds')
+        ).filter(TimeEntry.repo_id == r.id).first()
+        
+        rp = int(stats.prompt or 0) if stats else 0
+        rc = int(stats.completion or 0) if stats else 0
+        rsec = int(stats.seconds or 0) if stats else 0
+        
+        if rp > 0 or rc > 0 or rsec > 0:
+            repo_stats.append({
+                'repo_id': r.id,
+                'repo_name': r.full_name,
+                'prompt_tokens': rp,
+                'completion_tokens': rc,
+                'total_tokens': rp + rc,
+                'duration_seconds': rsec,
+                'tokens_per_minute': round((rp + rc) / (rsec / 60.0), 2) if rsec > 0 else 0
+            })
+            
+    # 3. Time Series Data (Group by Day)
+    daily_stats = db.query(
+        func.date(TimeEntry.created_at).label('day'),
+        func.sum(TimeEntry.total_prompt_tokens + TimeEntry.total_completion_tokens).label('tokens'),
+        func.sum(TimeEntry.duration_seconds).label('seconds')
+    ).join(GithubRepository).filter(
+        GithubRepository.user_id == user.id
+    ).group_by('day').order_by('day').all()
+    
+    time_series = [
+        {
+            'date': stat.day,
+            'tokens': int(stat.tokens or 0),
+            'duration_seconds': int(stat.seconds or 0)
+        } for stat in daily_stats
+    ]
+
+    return {
+        'status': 'success',
+        'overall': {
+            'prompt_tokens': total_prompt,
+            'completion_tokens': total_completion,
+            'total_tokens': total_prompt + total_completion
+        },
+        'by_repo': repo_stats,
+        'time_series': time_series
+    }

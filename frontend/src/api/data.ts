@@ -23,4 +23,8 @@ export const dataApi = {
     const query = params.toString();
     return `/data/export/csv${query ? `?${query}` : ''}`;
   },
+  getTokenAnalytics: async (): Promise<any> => {
+    const response = await apiClient.get('/data/analytics/tokens');
+    return response.data;
+  }
 };

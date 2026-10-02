@@ -41,6 +41,16 @@ def migrate():
 
     # Add Indexes
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_time_entries_created_at ON time_entries(created_at);")
+    
+    # Token Usage Migration
+    cursor.execute("PRAGMA table_info(time_entries);")
+    time_columns = [row[1] for row in cursor.fetchall()]
+    if 'total_prompt_tokens' not in time_columns:
+        cursor.execute("ALTER TABLE time_entries ADD COLUMN total_prompt_tokens INTEGER NOT NULL DEFAULT 0;")
+        print("Added 'total_prompt_tokens' column to 'time_entries' table.")
+    if 'total_completion_tokens' not in time_columns:
+        cursor.execute("ALTER TABLE time_entries ADD COLUMN total_completion_tokens INTEGER NOT NULL DEFAULT 0;")
+        print("Added 'total_completion_tokens' column to 'time_entries' table.")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_time_entries_commit_sha ON time_entries(commit_sha);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_commit_links_status ON commit_links(status);")
     print("Checked database indexes.")

@@ -19,6 +19,8 @@ class TimeEntry(Base):
     synced_at = Column(DateTime, nullable=True)
     commit_sha = Column(String(40), nullable=True, default=None, index=True)
     commit_message = Column(String(500), nullable=True, default=None)
+    total_prompt_tokens = Column(Integer, default=0, nullable=False)
+    total_completion_tokens = Column(Integer, default=0, nullable=False)
 
     repository = relationship('GithubRepository', back_populates='time_entries')
 

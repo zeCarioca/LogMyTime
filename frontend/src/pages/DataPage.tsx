@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { HierarchyTree } from '../components';
+import { TokenAnalytics } from '../components/data/TokenAnalytics';
 import { dataApi } from '../api/data';
 import { useRepos } from '../hooks/useRepos';
 
@@ -7,6 +8,7 @@ export const DataPage: React.FC = () => {
   const { activeRepos } = useRepos();
   const [selectedRepoId, setSelectedRepoId] = useState<number | ''>('');
   const [refreshCount, setRefreshCount] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<'hierarchy' | 'ai'>('hierarchy');
   
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -66,7 +68,26 @@ export const DataPage: React.FC = () => {
         </div>
       </div>
 
-      <HierarchyTree data={data} loading={loading} refreshCount={refreshCount} />
+      <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+        <button 
+          className={`btn ${activeTab === 'hierarchy' ? 'btn-primary' : 'btn-outline'}`}
+          onClick={() => setActiveTab('hierarchy')}
+        >
+          📂 Hierarchy & Timeline
+        </button>
+        <button 
+          className={`btn ${activeTab === 'ai' ? 'btn-primary' : 'btn-outline'}`}
+          onClick={() => setActiveTab('ai')}
+        >
+          🤖 AI Token Analytics
+        </button>
+      </div>
+
+      {activeTab === 'hierarchy' ? (
+        <HierarchyTree data={data} loading={loading} refreshCount={refreshCount} />
+      ) : (
+        <TokenAnalytics />
+      )}
     </div>
   );
 };
