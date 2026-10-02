@@ -164,3 +164,52 @@ async def export_csv(
         media_type='text/csv',
         headers={'Content-Disposition': f'attachment; filename="{filename}"'}
     )
+
+@router.get("/git-graph")
+async def get_git_graph(
+    repo_id: int | None = Query(None),
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    from services import GitService
+    
+    # 1. We only support git-graph for the currently configured local repo path for now
+    if not user.local_repo_path:
+        return {'status': 'error', 'message': 'No local repository path configured.'}
+        
+    git = GitService(user.local_repo_path)
+    if not git.is_valid_repo():
+        return {'status': 'error', 'message': 'Invalid local git repository.'}
+        
+    nodes = git.get_git_graph(limit=200)
+    
+    # 2. Map time entries to commits
+    # We query all time entries that have a commit_sha
+    from sqlalchemy import func
+    time_stats = db.query(
+        TimeEntry.commit_sha,
+        func.sum(TimeEntry.duration_seconds).label('total_sec')
+    ).filter(
+        TimeEntry.commit_sha != None
+    )
+    if repo_id:
+        time_stats = time_stats.filter(TimeEntry.repo_id == repo_id)
+        
+    time_stats = time_stats.group_by(TimeEntry.commit_sha).all()
+    
+    time_map = {stat.commit_sha: int(stat.total_sec or 0) for stat in time_stats}
+    
+    # Also handle short shas just in case
+    for node in nodes:
+        node['time_logged_seconds'] = 0
+        sha = node['sha']
+        # We need to find matching full shas in time_map since `git log --format=%h` gives short shas
+        for full_sha, secs in time_map.items():
+            if full_sha.startswith(sha):
+                node['time_logged_seconds'] += secs
+                
+    return {
+        'status': 'success',
+        'nodes': nodes
+    }
+

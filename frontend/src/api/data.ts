@@ -8,6 +8,10 @@ export const dataApi = {
     const response = await apiClient.get('/data/hierarchy', { params });
     return response.data;
   },
+  getGitGraph: async (repoId: number): Promise<any> => {
+    const response = await apiClient.get(`/repos/${repoId}/git-graph`);
+    return response.data;
+  },
   setSelectedRepoPreference: async (repository: string): Promise<{ status: string }> => {
     const response = await apiClient.post('/data/preference/selected-repo', { repository });
     return response.data;

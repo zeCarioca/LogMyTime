@@ -8,6 +8,7 @@ export * from './commits/LocalGitStatus';
 export * from './commits/BulkLinkSection';
 
 export * from './data/HierarchyTree';
+export * from './data/GitGraphTree';
 
 export * from './analytics/InsightsTicker';
 export * from './analytics/DatePickerGroup';

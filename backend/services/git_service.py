@@ -1,6 +1,6 @@
+import logging
 import os
 import subprocess
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +65,47 @@ class GitService:
                     'date': parts[3] if len(parts) > 3 else ''
                 })
         return commits
+
+    def get_git_graph(self, limit: int = 500) -> list[dict]:
+        log = self._run('log', '--all', '--date-order', f'-{limit}', '--format=%H%x1f%p%x1f%d%x1f%s%x1f%an%x1f%ad', '--date=iso')
+        if not log:
+            return []
+        nodes = []
+        for line in log.split('\n'):
+            if not line.strip():
+                continue
+            parts = line.split('\x1f', 5)
+            if len(parts) >= 6:
+                sha = parts[0].strip()
+                parents = parts[1].strip().split() if parts[1].strip() else []
+                
+                # Parse refs: e.g. " (HEAD -> main, origin/main, tag: v1.0)"
+                refs_raw = parts[2].strip()
+                refs = []
+                if refs_raw.startswith('(') and refs_raw.endswith(')'):
+                    refs_str = refs_raw[1:-1]
+                    for ref in refs_str.split(','):
+                        ref = ref.strip()
+                        if ref.startswith('tag: '):
+                            pass # Ignoring tags for branches tree
+                        elif '->' in ref:
+                            refs.append(ref.split('->')[1].strip())
+                        else:
+                            refs.append(ref)
+                
+                message = parts[3].strip()
+                author = parts[4].strip()
+                date = parts[5].strip()
+                
+                nodes.append({
+                    'sha': sha,
+                    'parents': parents,
+                    'refs': refs,
+                    'message': message,
+                    'author': author,
+                    'date': date
+                })
+        return nodes
 
     def get_staged_files(self) -> list[str]:
         output = self._run('diff', '--cached', '--name-only')
