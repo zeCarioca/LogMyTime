@@ -104,4 +104,4 @@ async def get_repo_git_graph(repo_id: int, limit: int = 500, user: User = Depend
         node['sha'] = node['sha'][:7]
         node['parents'] = [p[:7] for p in node['parents']]
 
-    return {"nodes": graph}
+    return {"status": "success", "nodes": graph}
