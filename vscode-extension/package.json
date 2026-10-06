@@ -1,0 +1,88 @@
+{
+  "name": "logmytime",
+  "displayName": "LogMyTime",
+  "description": "VS Code integration for LogMyTime",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "logmytime.startTimer",
+        "title": "LogMyTime: Start Timer"
+      },
+      {
+        "command": "logmytime.stopTimer",
+        "title": "LogMyTime: Stop Timer"
+      },
+      {
+        "command": "logmytime.linkToCurrentCommit",
+        "title": "LogMyTime: Link to Current Commit"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "logmytime-view",
+          "title": "LogMyTime",
+          "icon": "$(clock)"
+        }
+      ]
+    },
+    "views": {
+      "logmytime-view": [
+        {
+          "id": "logmytime-sidebar",
+          "name": "Unlinked Timelogs"
+        }
+      ]
+    },
+    "menus": {
+      "view/item/context": [
+        {
+          "command": "logmytime.linkToCurrentCommit",
+          "when": "viewItem == timelog",
+          "group": "inline"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "LogMyTime",
+      "properties": {
+        "logmytime.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "The URL of your LogMyTime backend."
+        },
+        "logmytime.apiToken": {
+          "type": "string",
+          "default": "",
+          "description": "Your static API token generated from the LogMyTime dashboard."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@types/node": "18.x",
+    "typescript": "^5.1.3",
+    "ts-loader": "^9.4.3",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "axios": "^1.4.0"
+  }
+}

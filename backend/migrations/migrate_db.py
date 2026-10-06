@@ -27,6 +27,25 @@ def migrate():
         cursor.execute("ALTER TABLE users ADD COLUMN commit_poll_interval_minutes INTEGER DEFAULT 5;")
         print("Added 'commit_poll_interval_minutes' column to 'users' table.")
 
+    if 'static_api_token' not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN static_api_token VARCHAR(255);")
+        print("Added 'static_api_token' column.")
+    if 'active_timer_repo_id' not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN active_timer_repo_id INTEGER REFERENCES github_repositories(id);")
+        print("Added 'active_timer_repo_id' column.")
+    if 'active_timer_start' not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN active_timer_start DATETIME;")
+        print("Added 'active_timer_start' column.")
+    if 'active_timer_task_description' not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN active_timer_task_description VARCHAR(255);")
+        print("Added 'active_timer_task_description' column.")
+    if 'active_timer_accumulated_seconds' not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN active_timer_accumulated_seconds INTEGER DEFAULT 0;")
+        print("Added 'active_timer_accumulated_seconds' column.")
+    if 'active_timer_is_running' not in columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN active_timer_is_running BOOLEAN DEFAULT 0;")
+        print("Added 'active_timer_is_running' column.")
+
     # Create analytics_goals if not exists
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS analytics_goals (

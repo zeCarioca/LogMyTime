@@ -24,4 +24,26 @@ export const timeApi = {
     const response = await apiClient.post<{ status: string; synced_count?: number }>(`/time/sync-manual/${repoId}`);
     return response.data;
   },
+  
+  // Active Timer Endpoints
+  getTimerState: async () => {
+    const response = await apiClient.get('/time/timer/state');
+    return response.data;
+  },
+  startTimer: async (payload: { repo_id?: number; task_description?: string }) => {
+    const response = await apiClient.post('/time/timer/start', payload);
+    return response.data;
+  },
+  pauseTimer: async () => {
+    const response = await apiClient.post('/time/timer/pause');
+    return response.data;
+  },
+  resetTimer: async () => {
+    const response = await apiClient.post('/time/timer/reset');
+    return response.data;
+  },
+  addTime: async (minutes: number) => {
+    const response = await apiClient.post('/time/timer/add-time', { minutes });
+    return response.data;
+  },
 };

@@ -9,4 +9,8 @@ export const authApi = {
   logout: async (): Promise<void> => {
     localStorage.removeItem('lmt_token');
   },
+  generateApiToken: async (): Promise<{ token: string }> => {
+    const response = await apiClient.post<{ token: string }>('/auth/generate-token');
+    return response.data;
+  },
 };

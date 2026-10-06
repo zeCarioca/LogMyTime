@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from schemas import TimeEntryCreate, TimeEntryOut
 from sqlalchemy.orm import Session
@@ -100,3 +101,66 @@ async def manual_sync(repo_id: int, background_tasks: BackgroundTasks, user: Use
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+class TimerStartPayload(BaseModel):
+    repo_id: int | None = None
+    task_description: str | None = None
+
+class TimerAddPayload(BaseModel):
+    minutes: int
+
+def _get_timer_state_dict(user: User):
+    return {
+        "is_running": user.active_timer_is_running,
+        "start_time": user.active_timer_start,
+        "accumulated_seconds": user.active_timer_accumulated_seconds,
+        "repo_id": user.active_timer_repo_id,
+        "task_description": user.active_timer_task_description,
+    }
+
+@router.get("/timer/state")
+async def get_timer_state(user: User = Depends(get_current_user)):
+    return _get_timer_state_dict(user)
+
+@router.post("/timer/start")
+async def start_timer(payload: TimerStartPayload, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if not user.active_timer_is_running:
+        user.active_timer_start = datetime.utcnow()
+        user.active_timer_is_running = True
+    if payload.repo_id is not None:
+        user.active_timer_repo_id = payload.repo_id
+    if payload.task_description is not None:
+        user.active_timer_task_description = payload.task_description
+    db.commit()
+    return _get_timer_state_dict(user)
+
+@router.post("/timer/pause")
+async def pause_timer(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if user.active_timer_is_running and user.active_timer_start:
+        elapsed = (datetime.utcnow() - user.active_timer_start).total_seconds()
+        user.active_timer_accumulated_seconds += int(elapsed)
+        user.active_timer_is_running = False
+        user.active_timer_start = None
+        db.commit()
+    return _get_timer_state_dict(user)
+
+@router.post("/timer/reset")
+async def reset_timer(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user.active_timer_is_running = False
+    user.active_timer_start = None
+    user.active_timer_accumulated_seconds = 0
+    # Keep repo_id as context is often preserved
+    db.commit()
+    return _get_timer_state_dict(user)
+
+@router.post("/timer/add-time")
+async def add_time(payload: TimerAddPayload, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    user.active_timer_accumulated_seconds += payload.minutes * 60
+    if user.active_timer_accumulated_seconds < 0:
+        if user.active_timer_is_running:
+            user.active_timer_accumulated_seconds = 0
+            user.active_timer_start = datetime.utcnow()
+        else:
+            user.active_timer_accumulated_seconds = 0
+    db.commit()
+    return _get_timer_state_dict(user)

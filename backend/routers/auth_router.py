@@ -1,4 +1,5 @@
 import os
+import secrets
 from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
@@ -34,6 +35,12 @@ async def get_current_user(authorization: str = Header(None), db: Session = Depe
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     token = authorization.split(" ")[1]
+    
+    # Check for static API token first
+    user_by_static = db.query(User).filter(User.static_api_token == token).first()
+    if user_by_static:
+        return user_by_static
+
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: int = int(payload.get("sub"))
@@ -111,3 +118,10 @@ async def callback(code: str, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserOut)
 async def get_me(user: User = Depends(get_current_user)):
     return user
+
+@router.post("/generate-token")
+async def generate_api_token(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    token = secrets.token_hex(32)
+    user.static_api_token = token
+    db.commit()
+    return {"token": token}

@@ -16,7 +16,7 @@ class GithubRepository(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship('User', back_populates='repositories')
+    user = relationship('User', back_populates='repositories', foreign_keys=[user_id])
     time_entries = relationship('TimeEntry', back_populates='repository', cascade='all, delete-orphan')
 
     @property
