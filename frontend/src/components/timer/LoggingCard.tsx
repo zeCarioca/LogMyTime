@@ -1,21 +1,26 @@
 import React, { useState } from 'react';
-import { GithubRepository } from '../../types';
+import { GithubRepository, Task } from '../../types';
 
 interface LoggingCardProps {
   repos: GithubRepository[];
+  activeTasks: Task[];
   seconds: number;
+  taskDescription: string;
+  onTaskDescriptionChange: (desc: string) => void;
   onAddMinutes: (mins: number) => void;
   onSaveTime: (repoId: number, description: string, durationSeconds: number) => Promise<void>;
 }
 
 export const LoggingCard: React.FC<LoggingCardProps> = ({
   repos,
+  activeTasks,
   seconds,
+  taskDescription,
+  onTaskDescriptionChange,
   onAddMinutes,
   onSaveTime,
 }) => {
   const [selectedRepoId, setSelectedRepoId] = useState<number>(0);
-  const [taskDescription, setTaskDescription] = useState<string>('');
   const [saving, setSaving] = useState<boolean>(false);
 
   React.useEffect(() => {
@@ -46,7 +51,6 @@ export const LoggingCard: React.FC<LoggingCardProps> = ({
     setSaving(true);
     try {
       await onSaveTime(selectedRepoId, taskDescription.trim(), seconds);
-      setTaskDescription('');
     } finally {
       setSaving(false);
     }
@@ -78,13 +82,20 @@ export const LoggingCard: React.FC<LoggingCardProps> = ({
           <label htmlFor="task-input">Task Description</label>
           <input
             id="task-input"
+            list="task-suggestions"
             type="text"
             className="form-control"
             placeholder="What are you building or debugging?"
             value={taskDescription}
-            onChange={(e) => setTaskDescription(e.target.value)}
+            onChange={(e) => onTaskDescriptionChange(e.target.value)}
             required
+            autoComplete="off"
           />
+          <datalist id="task-suggestions">
+            {activeTasks.map((task) => (
+              <option key={task.id} value={task.title} />
+            ))}
+          </datalist>
         </div>
 
         <div className="duration-steppers-row" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>

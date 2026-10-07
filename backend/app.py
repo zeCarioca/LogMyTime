@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-from routers import auth_router, commit_router, data_router, repo_router, time_router, analytics_router
+from routers import auth_router, commit_router, data_router, repo_router, time_router, analytics_router, task_router
 
 from models import Base, engine
 
@@ -40,6 +40,7 @@ app.include_router(time_router, prefix="/time")
 app.include_router(commit_router, prefix="/commits")
 app.include_router(data_router, prefix="/data")
 app.include_router(analytics_router, prefix="/analytics")
+app.include_router(task_router)
 
 @app.get("/")
 async def root():

@@ -33,7 +33,7 @@ const FUNNY_PHRASES = [
   "A wild bug appears!"
 ];
 
-const ColorSwatch: React.FC<{ color: any, idx: number, locked: boolean, toggleLock: () => void, openEditor: () => void }> = ({ color, idx, locked, toggleLock, openEditor }) => {
+const ColorSwatch: React.FC<{ color: any, locked: boolean, toggleLock: () => void, openEditor: () => void }> = ({ color, locked, toggleLock, openEditor }) => {
   const [hovered, setHovered] = React.useState(false);
   const isLight = color.l > 0.6;
   const iconColor = isLight ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.8)';
@@ -256,7 +256,6 @@ export const PaletteGeneratorWidget: React.FC = () => {
             <ColorSwatch 
               key={idx} 
               color={color} 
-              idx={idx} 
               locked={lockedColors[idx]} 
               toggleLock={() => toggleColorLock(idx)} 
               openEditor={() => setActiveEditorIndex(activeEditorIndex === idx ? null : idx)}

@@ -39,7 +39,7 @@ async def log_time(payload: TimeEntryCreate, background_tasks: BackgroundTasks, 
         duration_minutes=min_val,
         is_synced=False,
         commit_sha=payload.commit_sha or payload.commit,
-        commit_message=payload.commit_message
+        commit_message=payload.commit_message, task_id=payload.task_id
     )
     db.add(entry)
     db.commit()

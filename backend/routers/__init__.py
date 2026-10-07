@@ -4,6 +4,7 @@ from routers.data_router import router as data_router
 from routers.repo_router import router as repo_router
 from routers.time_router import router as time_router
 from routers.analytics_router import router as analytics_router
+from routers.task_router import router as task_router
 
 __all__ = [
     'auth_router',
@@ -11,5 +12,6 @@ __all__ = [
     'data_router',
     'repo_router',
     'time_router',
-    'analytics_router'
+    'analytics_router',
+    'task_router'
 ]

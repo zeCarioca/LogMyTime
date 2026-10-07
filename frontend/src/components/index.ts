@@ -2,6 +2,7 @@ export * from './layout/Header';
 export * from './layout/TabsNav';
 export * from './timer/TimerDial';
 export * from './timer/LoggingCard';
+export * from './timer/TaskKeeperCard';
 export * from './repos/ReposCard';
 export * from './commits/CommitPairingQueue';
 export * from './commits/LocalGitStatus';

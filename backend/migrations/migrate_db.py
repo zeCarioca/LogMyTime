@@ -58,6 +58,23 @@ def migrate():
     """)
     print("Checked 'analytics_goals' table.")
 
+    # Create tasks table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        repo_id INTEGER,
+        title VARCHAR(255) NOT NULL,
+        status VARCHAR(50) NOT NULL DEFAULT 'todo',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        completed_at DATETIME,
+        FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY(repo_id) REFERENCES github_repositories(id) ON DELETE SET NULL
+    );
+    """)
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at);")
+    print("Checked 'tasks' table.")
+
     # Add Indexes
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_time_entries_created_at ON time_entries(created_at);")
     
@@ -70,6 +87,9 @@ def migrate():
     if 'total_completion_tokens' not in time_columns:
         cursor.execute("ALTER TABLE time_entries ADD COLUMN total_completion_tokens INTEGER NOT NULL DEFAULT 0;")
         print("Added 'total_completion_tokens' column to 'time_entries' table.")
+    if 'task_id' not in time_columns:
+        cursor.execute("ALTER TABLE time_entries ADD COLUMN task_id INTEGER REFERENCES tasks(id);")
+        print("Added 'task_id' column to 'time_entries' table.")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_time_entries_commit_sha ON time_entries(commit_sha);")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_commit_links_status ON commit_links(status);")
     print("Checked database indexes.")

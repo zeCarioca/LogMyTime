@@ -21,8 +21,10 @@ class TimeEntry(Base):
     commit_message = Column(String(500), nullable=True, default=None)
     total_prompt_tokens = Column(Integer, default=0, nullable=False)
     total_completion_tokens = Column(Integer, default=0, nullable=False)
+    task_id = Column(Integer, ForeignKey('tasks.id'), nullable=True)
 
     repository = relationship('GithubRepository', back_populates='time_entries')
+    task = relationship('Task', back_populates='time_entries')
 
     @property
     def project(self):

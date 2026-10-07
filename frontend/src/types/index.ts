@@ -195,4 +195,27 @@ export interface InsightsOut {
   insights: Insight[];
 }
 
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
 
+export interface Task {
+  id: number;
+  user_id: number;
+  repo_id: number | null;
+  title: string;
+  status: TaskStatus;
+  created_at: string;
+  completed_at: string | null;
+}
+
+export interface TaskCreate {
+  title: string;
+  repo_id?: number | null;
+  status?: TaskStatus;
+}
+
+export interface TaskUpdate {
+  title?: string;
+  repo_id?: number | null;
+  status?: TaskStatus;
+  completed_at?: string | null;
+}

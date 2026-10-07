@@ -5,6 +5,7 @@ from models.repository import GithubRepository
 from models.time_entry import TimeEntry
 from models.user import User
 from models.analytics_goal import AnalyticsGoal
+from models.task import Task
 
 __all__ = [
     'AnalyticsGoal',
@@ -16,6 +17,7 @@ __all__ = [
     'SessionLocal',
     'TimeEntry',
     'User',
+    'Task',
     'engine',
     'get_db',
 ]

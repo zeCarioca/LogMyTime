@@ -28,6 +28,7 @@ class User(Base):
 
     repositories = relationship('GithubRepository', back_populates='user', cascade='all, delete-orphan', foreign_keys='GithubRepository.user_id')
     analytics_goal = relationship('AnalyticsGoal', back_populates='user', uselist=False, cascade='all, delete-orphan')
+    tasks = relationship('Task', back_populates='user', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<User {self.github_username}>'

@@ -15,6 +15,7 @@ interface PaletteState {
   lockedColors: boolean[];
   isOpen: boolean;
   savedPalettes: SavedPalette[];
+  glassAlpha?: number;
 }
 
 interface PaletteContextType extends PaletteState {

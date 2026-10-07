@@ -4,5 +4,5 @@ export * from './useTimer';
 export * from './useCommitPoller';
 export * from './useGitStatus';
 export * from './useBulkLink';
-
+export * from './useTasks';
 

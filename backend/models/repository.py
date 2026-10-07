@@ -18,6 +18,7 @@ class GithubRepository(Base):
 
     user = relationship('User', back_populates='repositories', foreign_keys=[user_id])
     time_entries = relationship('TimeEntry', back_populates='repository', cascade='all, delete-orphan')
+    tasks = relationship('Task', back_populates='repository', cascade='all, delete-orphan')
 
     @property
     def unsynced_seconds(self):

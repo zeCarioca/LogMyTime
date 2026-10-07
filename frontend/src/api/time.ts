@@ -9,6 +9,7 @@ export interface LogTimePayload {
   commit?: string;
   commit_sha?: string;
   commit_message?: string;
+  task_id?: number;
 }
 
 export const timeApi = {

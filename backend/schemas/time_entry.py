@@ -11,6 +11,7 @@ class TimeEntryCreate(BaseModel):
     commit: str | None = None
     commit_sha: str | None = None
     commit_message: str | None = None
+    task_id: int | None = None
 
 class TimeEntryOut(BaseModel):
     id: int
