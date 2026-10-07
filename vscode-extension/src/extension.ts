@@ -147,6 +147,7 @@ async function syncState() {
         const state = res.data;
         
         localIsRunning = state.is_running;
+        vscode.commands.executeCommand('setContext', 'logmytime.isRunning', localIsRunning);
         
         if (state.is_running && state.start_time) {
             let startString = state.start_time;

@@ -15,11 +15,13 @@
     "commands": [
       {
         "command": "logmytime.startTimer",
-        "title": "LogMyTime: Start Timer"
+        "title": "LogMyTime: Start Timer",
+        "icon": "$(play)"
       },
       {
         "command": "logmytime.stopTimer",
-        "title": "LogMyTime: Stop Timer"
+        "title": "LogMyTime: Stop Timer",
+        "icon": "$(debug-pause)"
       },
       {
         "command": "logmytime.linkToCurrentCommit",
@@ -49,6 +51,18 @@
           "command": "logmytime.linkToCurrentCommit",
           "when": "viewItem == timelog",
           "group": "inline"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "logmytime.startTimer",
+          "when": "view == logmytime-sidebar && !logmytime.isRunning",
+          "group": "navigation"
+        },
+        {
+          "command": "logmytime.stopTimer",
+          "when": "view == logmytime-sidebar && logmytime.isRunning",
+          "group": "navigation"
         }
       ]
     },

@@ -16,3 +16,4 @@ __pycache__/
 
 # Node 
 node_modules/
+frontend/node_modules/.vite/deps/_metadata.json
