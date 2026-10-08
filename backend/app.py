@@ -24,11 +24,14 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-frontend_origin = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+frontend_origins_str = os.getenv("FRONTEND_ORIGIN", "http://localhost:5173")
+origins = [o.strip() for o in frontend_origins_str.split(",") if o.strip()]
+if "http://127.0.0.1:5173" not in origins:
+    origins.append("http://127.0.0.1:5173")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_origin, "http://127.0.0.1:5173"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

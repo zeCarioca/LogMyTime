@@ -8,9 +8,14 @@ load_dotenv()
 
 # Point to instance/database.db if present, or database.db in root/instance folder
 DEFAULT_DB_PATH = "sqlite:///../instance/database.db"
-DATABASE_URL = os.getenv("DATABASE_URI", DEFAULT_DB_PATH)
+DATABASE_URL = os.getenv("DATABASE_URL", os.getenv("DATABASE_URI", DEFAULT_DB_PATH))
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Only add check_same_thread=False for SQLite
+connect_args = {}
+if DATABASE_URL.startswith("sqlite"):
+    connect_args["check_same_thread"] = False
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Base(DeclarativeBase):
