@@ -13,7 +13,7 @@ import { timeApi } from '../api/time';
 export const Dashboard: React.FC = () => {
   const { seconds, isRunning, start, pause, reset, addMinutes, formattedTime } = useTimer();
   const { activeRepos, archivedRepos, refreshRepos, toggleArchive, refetchRepos } = useRepos();
-  const { gitStatus, setLocalPath } = useGitStatus();
+  const { gitStatus } = useGitStatus();
   const { activeTasks, completedTasks, addTask, updateTaskStatus } = useTasks();
   const [refreshPairingTrigger, setRefreshPairingTrigger] = React.useState<number>(0);
   const [activeTaskId, setActiveTaskId] = React.useState<number | null>(null);
@@ -85,7 +85,7 @@ export const Dashboard: React.FC = () => {
           onManualSync={handleManualSync}
         />
 
-        <LocalGitStatus status={gitStatus} onSetPath={setLocalPath} />
+        <LocalGitStatus status={gitStatus} />
         <CommitPairingQueue onPairConfirmed={refetchRepos} refreshTrigger={refreshPairingTrigger} />
       </div>
 

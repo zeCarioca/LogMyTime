@@ -81,10 +81,58 @@ async def reject_pairing(commit_link_id: int, user: User = Depends(get_current_u
     return {"status": "success", "message": "Pairing rejected"}
 
 @router.get("/git-status")
-async def get_local_git_status(user: User = Depends(get_current_user)):
-    repo_path = user.local_repo_path or "."
-    git_srv = GitService(repo_path)
-    return git_srv.get_status()
+async def get_github_repo_status(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    from models import GithubRepository
+    from services.github_service import GitHubService
+
+    active_repo = db.query(GithubRepository).filter(
+        GithubRepository.user_id == user.id,
+        GithubRepository.is_active == True
+    ).first()
+    
+    if not active_repo:
+        return {"is_valid": False, "repo_path": None}
+        
+    gh = GitHubService(user.access_token)
+    try:
+        commits = await gh.get_commits(
+            repo_full_name=active_repo.full_name,
+            branch=active_repo.default_branch,
+            per_page=1
+        )
+        if commits:
+            latest = commits[0]
+            sha = latest.get('sha', '')
+            commit_info = latest.get('commit', {})
+            msg = commit_info.get('message', '').split('\n')[0]
+            author = commit_info.get('author', {}).get('name', 'Developer')
+            date_str = commit_info.get('author', {}).get('date', '')
+            
+            return {
+                "is_valid": True,
+                "repo_path": active_repo.full_name,
+                "branch": active_repo.default_branch,
+                "last_commit": {
+                    "sha": sha,
+                    "short_sha": sha[:7],
+                    "message": msg,
+                    "author": author,
+                    "date": date_str
+                },
+                "staged_files": [],
+                "modified_files": []
+            }
+    except Exception:
+        pass
+        
+    return {
+        "is_valid": True,
+        "repo_path": active_repo.full_name,
+        "branch": active_repo.default_branch,
+        "last_commit": None,
+        "staged_files": [],
+        "modified_files": []
+    }
 
 @router.post("/set-local-path")
 async def set_local_repo_path(path: str, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
