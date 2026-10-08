@@ -28,10 +28,6 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
 async def get_current_user(authorization: str = Header(None), db: Session = Depends(get_db)) -> User:
     if not authorization or not authorization.startswith("Bearer "):
-        # Fallback to default user for development/demo
-        first_user = db.query(User).first()
-        if first_user:
-            return first_user
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated")
 
     token = authorization.split(" ")[1]
@@ -60,10 +56,11 @@ async def login():
     if not client_id or client_id == 'your_github_client_id_here':
         raise HTTPException(status_code=400, detail="GITHUB_CLIENT_ID not configured")
 
+    backend_url = os.getenv('BACKEND_URL', 'http://127.0.0.1:8000').rstrip('/')
     params = {
         'client_id': client_id,
         'scope': 'repo user:email',
-        'redirect_uri': 'http://127.0.0.1:8000/auth/callback'
+        'redirect_uri': f"{backend_url}/auth/callback"
     }
     return RedirectResponse(f"{GITHUB_AUTH_URL}?{urlencode(params)}")
 
