@@ -8,7 +8,8 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ user, onLogout }) => {
-  const loginUrl = '/auth/login';
+  const baseURL = import.meta.env.VITE_API_URL || '';
+  const loginUrl = `${baseURL}/auth/login`;
   const [tokenMsg, setTokenMsg] = useState('');
 
   const handleGenerateToken = async () => {
