@@ -8,7 +8,18 @@ load_dotenv()
 
 # Point to instance/database.db if present, or database.db in root/instance folder
 DEFAULT_DB_PATH = "sqlite:///../instance/database.db"
-DATABASE_URL = os.getenv("DATABASE_URL", os.getenv("DATABASE_URI", DEFAULT_DB_PATH))
+
+# Vercel Supabase integrations often provide POSTGRES_URL or SUPABASE_DB_URL instead of DATABASE_URL
+env_vars_to_check = ["DATABASE_URL", "DATABASE_URI", "POSTGRES_URL", "POSTGRES_PRISMA_URL", "SUPABASE_DB_URL"]
+DATABASE_URL = None
+for var in env_vars_to_check:
+    val = os.getenv(var)
+    if val:
+        DATABASE_URL = val
+        break
+
+if not DATABASE_URL:
+    DATABASE_URL = DEFAULT_DB_PATH
 
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
