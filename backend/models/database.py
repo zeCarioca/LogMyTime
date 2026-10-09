@@ -10,6 +10,9 @@ load_dotenv()
 DEFAULT_DB_PATH = "sqlite:///../instance/database.db"
 DATABASE_URL = os.getenv("DATABASE_URL", os.getenv("DATABASE_URI", DEFAULT_DB_PATH))
 
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 # Only add check_same_thread=False for SQLite
 connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
