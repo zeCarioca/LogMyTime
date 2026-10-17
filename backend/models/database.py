@@ -31,7 +31,12 @@ connect_args = {}
 if DATABASE_URL.startswith("sqlite"):
     connect_args["check_same_thread"] = False
 
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+print(f"[DB INIT] DATABASE_URL resolved: {DATABASE_URL!r}")
+try:
+    engine = create_engine(DATABASE_URL, connect_args=connect_args)
+except Exception as e:
+    print(f"[DB INIT ERROR] Failed to create_engine with URL {DATABASE_URL!r}: {e}")
+    raise
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 class Base(DeclarativeBase):
