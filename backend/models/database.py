@@ -20,10 +20,12 @@ for var in env_vars_to_check:
 
 if not DATABASE_URL:
     DATABASE_URL = DEFAULT_DB_PATH
+else:
+    DATABASE_URL = DATABASE_URL.strip().strip("'\"")
 
-if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
-elif DATABASE_URL and DATABASE_URL.startswith("postgresql://"):
+elif DATABASE_URL.startswith("postgresql://"):
     DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
 
 # Only add check_same_thread=False for SQLite
