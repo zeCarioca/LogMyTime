@@ -20,6 +20,8 @@ for var in env_vars_to_check:
 
 if not DATABASE_URL:
     DATABASE_URL = DEFAULT_DB_PATH
+else:
+    DATABASE_URL = DATABASE_URL.lstrip('\ufeff\uffef').strip().strip("'\"")
 
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
