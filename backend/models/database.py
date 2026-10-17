@@ -10,18 +10,16 @@ load_dotenv()
 DEFAULT_DB_PATH = "sqlite:///../instance/database.db"
 
 # Vercel Supabase integrations often provide POSTGRES_URL or SUPABASE_DB_URL instead of DATABASE_URL
-env_vars_to_check = ["DATABASE_URL", "DATABASE_URI", "POSTGRES_URL", "POSTGRES_PRISMA_URL", "SUPABASE_DB_URL"]
+env_vars_to_check = ["DATABASE_URL", "POSTGRES_URL", "DATABASE_URI", "POSTGRES_PRISMA_URL", "SUPABASE_DB_URL", "api_POSTGRES_URL"]
 DATABASE_URL = None
 for var in env_vars_to_check:
     val = os.getenv(var)
-    if val:
-        DATABASE_URL = val
+    if val and val.strip():
+        DATABASE_URL = val.strip().strip("'\"")
         break
 
 if not DATABASE_URL:
     DATABASE_URL = DEFAULT_DB_PATH
-else:
-    DATABASE_URL = DATABASE_URL.strip().strip("'\"")
 
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
